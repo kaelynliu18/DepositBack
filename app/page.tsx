@@ -5,6 +5,8 @@ import ActionKit from "@/components/ActionKit";
 import AgentFeed from "@/components/AgentFeed";
 import CaseSummary from "@/components/CaseSummary";
 import ChargeCard, { ChargeSkeleton, type ChargePhotos } from "@/components/ChargeCard";
+import ChargeDeck from "@/components/ChargeDeck";
+import NowBar from "@/components/NowBar";
 import DeadlineBanner from "@/components/DeadlineBanner";
 import ErrorCard from "@/components/ErrorCard";
 import Courtroom from "@/components/Courtroom";
@@ -95,27 +97,42 @@ export default function Home() {
   const items = result?.items ?? liveItems;
   const { strongClaim, possibleClaim } = result ?? (items ? totals(items) : { strongClaim: 0, possibleClaim: 0 });
 
+  // The card the Judge or Inspector touched most recently (the phone deck scrolls to it).
+  const lastChanged = items
+    ? items.reduce((best, i, idx) => {
+        const at = meta[i.id]?.override?.at ?? 0;
+        return at > best.at ? { at, idx } : best;
+      }, { at: 0, idx: -1 }).idx
+    : -1;
+
   const cards = (
-    <div className="space-y-3">
+    <ChargeDeck focusIndex={lastChanged >= 0 ? lastChanged : null}>
       {items ? items.map((i) => <ChargeCard key={i.id} item={i} meta={meta[i.id]} photos={photos[i.id]} />) : Array.from({ length: 5 }, (_, k) => <ChargeSkeleton key={k} />)}
-    </div>
+    </ChargeDeck>
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       {pending && <PhotoRequest key={pending.item.id} item={pending.item} onDone={answerPhotos} />}
-      {phase !== "intake" && (
-        <button onClick={reset} className="mb-4 text-sm text-slate-500 underline">
-          Start over
-        </button>
-      )}
+      <div className="mb-8 flex items-center justify-between sm:mb-10">
+        <span className="font-display text-2xl font-bold tracking-tight">
+          Deposit<span className="text-accent">Back</span>
+        </span>
+        {phase !== "intake" && (
+          <button onClick={reset} className="text-base font-medium text-muted underline hover:text-ink">
+            Start over
+          </button>
+        )}
+      </div>
 
       {phase === "intake" && <IntakeForm onSubmit={start} />}
 
       {phase === "live" && error && <ErrorCard message={error} onReset={reset} />}
 
       {phase === "live" && !error && (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <div className="space-y-6">
+          <NowBar events={events} waitingForPhotos={!!pending} finished={false} />
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <AgentFeed events={events} />
           <div className="space-y-5">
             {items && <CaseSummary items={items} />}
@@ -123,11 +140,12 @@ export default function Home() {
             <Courtroom events={events} items={items} />
             {cards}
           </div>
+          </div>
         </div>
       )}
 
       {phase === "result" && result && (
-        <div className="mx-auto max-w-3xl space-y-6">
+        <div className="rise mx-auto max-w-3xl space-y-6">
           {result.isLate && result.daysToStatement !== null && <DeadlineBanner days={result.daysToStatement} />}
           <CaseSummary items={result.items} landlordName={result.clerk.landlordName} />
           <Headline strongClaim={result.strongClaim} possibleClaim={result.possibleClaim} />
@@ -135,8 +153,8 @@ export default function Home() {
           {cards}
           <ActionKit result={result} />
           <SmallClaims result={result} tenantName={tenantName} />
-          <details className="rounded-2xl border border-slate-200 p-4">
-            <summary className="cursor-pointer text-lg font-medium text-slate-700">See how the agents worked</summary>
+          <details className="rounded-2xl border-2 border-line p-4">
+            <summary className="cursor-pointer text-lg font-medium text-muted">See how the agents worked</summary>
             <div className="mt-4">
               <AgentFeed events={events} />
             </div>

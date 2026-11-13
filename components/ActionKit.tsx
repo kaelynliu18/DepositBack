@@ -1,11 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { buildGcalUrl, buildGmailUrl, followUpDate } from "@/lib/compute";
+import { buildMailto } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 
-const btn =
-  "flex min-h-12 items-center justify-center rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:scale-[0.99]";
+const btn = "flex min-h-14 items-center justify-center rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:translate-y-px";
+
+function download(name: string, text: string, type: string) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 export default function ActionKit({ result }: { result: CaseResult }) {
   const [letter, setLetter] = useState(result.letter);
@@ -26,42 +36,36 @@ export default function ActionKit({ result }: { result: CaseResult }) {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  // Gmail draft built from the (possibly edited) letter, so the email matches what's on screen.
-  const gmail = buildGmailUrl(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
-  // Google Calendar "new event" page on the letter's deadline (nothing is downloaded).
-  const reminderLabel = new Date(followUpDate() + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  const gcal = buildGcalUrl({ strongClaim: result.strongClaim, landlordName: result.clerk.landlordName ?? null });
+  // Rebuild from the (possibly edited) letter so the email matches what's on screen.
+  const mailto = letter === result.letter ? result.mailto : buildMailto(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
 
   return (
-    <section className="space-y-4 rounded-2xl border border-teal-200 bg-teal-50/50 p-5 shadow-sm sm:p-6">
-      <h2 className="text-3xl font-bold text-teal-900">Claude finished the job:</h2>
+    <section className="space-y-5 rounded-[28px] bg-ink p-5 text-white sm:p-8">
+      <h2 className="font-display text-4xl font-bold">Claude finished the job:</h2>
       <textarea
         value={letter}
         onChange={(e) => setLetter(e.target.value)}
         rows={16}
         aria-label="Demand letter"
-        className="w-full rounded-xl border border-slate-300 bg-white p-4 text-base leading-relaxed text-slate-800 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20"
+        className="w-full rounded-2xl bg-white p-5 font-display text-lg leading-relaxed text-ink outline-none focus:ring-4 focus:ring-accent"
       />
       <div className="grid gap-3 sm:grid-cols-3">
-        <button onClick={() => copy("letter", letter)} className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
-          {copied === "letter" ? "Copied ✓" : "Copy letter"}
-        </button>
-        <a href={gmail} target="_blank" rel="noopener noreferrer" className={`${btn} bg-teal-800 text-white hover:bg-teal-900`}>
+        <a href={mailto} className={`${btn} bg-accent text-white hover:bg-accent-dark`}>
           Email landlord
         </a>
-        <a href={gcal} target="_blank" rel="noopener noreferrer" className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
-          <span className="flex flex-col leading-tight">
-            <span>Add reminder</span>
-            <span className="text-sm font-normal opacity-75">{reminderLabel}</span>
-          </span>
-        </a>
+        <button onClick={() => copy("letter", letter)} className={`${btn} border-2 border-white/40 hover:bg-white/10`}>
+          {copied === "letter" ? "Copied ✓" : "Copy letter"}
+        </button>
+        <button onClick={() => download("depositback-followup.ics", result.ics, "text/calendar")} className={`${btn} border-2 border-white/40 hover:bg-white/10`}>
+          Add day-14 follow-up
+        </button>
       </div>
       {result.followUpEmail && (
-        <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} w-full border border-slate-300 text-slate-700 hover:bg-white`}>
+        <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} w-full border-2 border-white/40 hover:bg-white/10`}>
           {copied === "followup" ? "Copied ✓" : "Copy follow-up email"}
         </button>
       )}
-      <p className="text-sm text-slate-500">Not legal advice. Review before sending. California only.</p>
+      <p className="text-sm text-white/60">Not legal advice. Review before sending. California only.</p>
     </section>
   );
 }
