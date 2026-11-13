@@ -1,0 +1,33 @@
+DEMO SCENARIOS: what to type in the form for each statement, and which photos to drop in.
+(Photos only appear for charges the Clerk sends to the Inspector. Skip any others.)
+
+1. bayview-property-management.jpg   <- MAIN DEMO
+   Name: Alex Chen   Deposit: 2400   Months: 11   Move-out: 10/01/2026
+   Photo prompt "Wall hole repair": living-room-wall-move-in.jpg + living-room-wall-move-out.jpg
+   Expect: 27 days late (limit 21). Wall = scuffs, no hole -> NOT allowed. Claim $780 (up to $2,030).
+
+2. golden-gate-rentals.jpg
+   Name: Jordan Lee   Deposit: 3200   Months: 13   Move-out: 08/31/2026
+   Photo prompt "nail holes (12)": bedroom-wall-nail-holes-move-in.jpg + -move-out.jpg
+   Expect: on time (12 days). Nail holes = normal wear -> NOT allowed. "Late move-out fee" flagged.
+   (A "stove drip pans" photo prompt may also appear: click Skip.)
+
+3. westwood-student-housing.jpg
+   Name: Maya Rodriguez   Deposit: 1800   Months: 10   Move-out: 06/15/2026
+   Photo prompt "stained mattress": mattress-move-in.jpg + mattress-move-out.jpg
+   Expect: 25 days late. Mattress = real stain, but full replacement -> QUESTIONABLE.
+
+4. redwood-court-apartments.jpg
+   Name: Chris Okafor   Deposit: 1500   Months: 9   Move-out: 08/30/2026
+   Photo prompt "Burned countertop": kitchen-countertop-move-in.jpg + -move-out.jpg
+   Expect: 33 days late, no landlord email (Gmail opens with blank To:). Burn = damage -> ALLOWED
+   (shows the AI sides with the landlord when the evidence says so). "Administrative fee" flagged.
+   (A "cracked mirror" photo prompt may also appear: click Skip.)
+
+5. harbor-view-properties.jpg
+   Name: Sam Nguyen   Deposit: 2500   Months: 24   Move-out: 05/31/2026
+   Expect: on time (18 days). 10-year-old carpet at full price -> questionable. Skip photo prompts.
+
+6. sunrise-apartments.pdf   (PDF upload)
+   Name: Priya Patel   Deposit: 2000   Months: 14   Move-out: 10/20/2026
+   Expect: landlord says tenant OWES $285; letter disputes it. Skip photo prompts.

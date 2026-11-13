@@ -1,11 +1,21 @@
 Demo upload files for DepositBack+ (drag these into the app).
 
-IMG_4821.jpg
-  Synthetic: a fictional itemized deposit statement rendered as a "phone photo". Bayview Property
-  Management, the tenant and all addresses are made up (example.com email).
+STATEMENTS (all synthetic: landlords, tenants, addresses and example.com emails are made up)
+  bayview-property-management.jpg, golden-gate-rentals.jpg, westwood-student-housing.jpg,
+  harbor-view-properties.jpg, redwood-court-apartments.jpg, sunrise-apartments.pdf
 
-living-room-wall-move-in.jpg, living-room-wall-move-out.jpg
-  Based on "Modern light switch panel on a plain wall in a room" by Shixart1985,
-  https://commons.wikimedia.org/wiki/File:Modern_light_switch_panel_on_a_plain_wall_in_a_room.jpg
-  licensed CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/).
-  Changes: resized, exposure/framing adjusted; the move-out version adds synthetic scuff marks.
+PHOTOS (real photos from Wikimedia Commons; move-out versions add synthetic wear/damage)
+  living-room-wall-move-in.jpg / living-room-wall-move-out.jpg
+    Based on "Modern light switch panel on a plain wall in a room" by Shixart1985, CC BY 2.0
+    https://commons.wikimedia.org/wiki/File:Modern_light_switch_panel_on_a_plain_wall_in_a_room.jpg
+  bedroom-wall-nail-holes-move-in.jpg / -move-out.jpg
+    Based on "Surface wall paint yellow white" by Titus Tscharntke, public domain
+    https://commons.wikimedia.org/wiki/File:Surface_wall_paint_yellow_white.jpg (recolored)
+  mattress-move-in.jpg / mattress-move-out.jpg
+    Based on "Pillowtop-mattress" by Jeffrey M. Vinocur, CC BY 2.5
+    https://commons.wikimedia.org/wiki/File:Pillowtop-mattress.jpg
+  kitchen-countertop-move-in.jpg / kitchen-countertop-move-out.jpg
+    Based on "Laminate Kitchen Countertop Beige" by Kurtkaiser, CC0
+    https://commons.wikimedia.org/wiki/File:Laminate_Kitchen_Countertop_Beige.jpg
+
+Changes to all photos: resized, exposure/framing adjusted; move-out versions add synthetic marks.
