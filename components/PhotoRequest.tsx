@@ -34,12 +34,13 @@ export default function PhotoRequest({ item, onDone }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/60 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true">
-      <div className="slide-in max-h-[95vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-t-[28px] bg-white p-5 sm:rounded-[28px] sm:p-8 sm:p-8">
-        <p className="font-display text-2xl font-bold leading-snug sm:text-3xl">
+      <div className="slide-in max-h-[95vh] w-full max-w-2xl space-y-5 overflow-y-auto pop rounded-b-none p-5 sm:rounded-[20px] sm:p-8 sm:p-8">
+        <p className="text-2xl font-black leading-snug tracking-tight sm:text-3xl">
           🔍 The Inspector thinks photos could beat the {formatMoney(item.amount)} &lsquo;{item.description}&rsquo; charge. Got
           move-in and move-out shots of that spot?
         </p>
 
+        <p className="rounded-xl bg-sun/60 px-3 py-2 text-base">Photos are optional but powerful: they can turn a &ldquo;maybe&rdquo; into a win. If you skip, the Clerk&apos;s verdict stands.</p>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <p className="font-semibold">Move-in</p>
@@ -56,20 +57,20 @@ export default function PhotoRequest({ item, onDone }: Props) {
           <button
             disabled={!ready || busy}
             onClick={() => ready && onDone({ moveIn: moveIn.picked!.file, moveOut: moveOut.picked!.file })}
-            className="flex-1 rounded-xl bg-accent px-5 py-3 text-lg font-semibold text-white hover:bg-accent-dark disabled:opacity-40"
+            className="flex-1 btn-pop bg-accent px-5 py-3 text-lg font-extrabold"
           >
             Send to Inspector
           </button>
           <button
             disabled={busy}
             onClick={sample}
-            className="flex-1 rounded-xl border-2 border-ink px-5 py-3 text-lg font-semibold hover:bg-paper disabled:opacity-40"
+            className="flex-1 btn-pop bg-white px-5 py-3 text-lg font-extrabold disabled:opacity-40"
           >
             {busy ? "Loading…" : "Use sample photos"}
           </button>
         </div>
         <div className="text-center">
-          <button onClick={() => onDone(null)} className="text-base text-muted underline">
+          <button onClick={() => onDone(null)} className="text-base font-medium text-muted underline">
             Skip
           </button>
         </div>

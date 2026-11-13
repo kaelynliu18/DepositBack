@@ -21,8 +21,8 @@ export default function SmallClaims({ result, tenantName }: { result: CaseResult
   ];
 
   return (
-    <details className="rounded-2xl border-2 border-line bg-white p-4 sm:p-5">
-      <summary className="cursor-pointer text-xl font-semibold">If they ignore you: small claims</summary>
+    <details className="pop p-4 sm:p-5">
+      <summary className="cursor-pointer text-xl font-black">If they ignore you: small claims</summary>
       <div className="mt-4 space-y-4">
         <p className="text-base text-muted">
           Small claims court is built for this: no lawyer needed. Here is what you&apos;d put on California form SC-100.
@@ -31,8 +31,8 @@ export default function SmallClaims({ result, tenantName }: { result: CaseResult
           {fields
             .filter(([, v]) => v)
             .map(([k, v]) => (
-              <div key={k} className="rounded-xl bg-paper p-3">
-                <dt className="text-sm font-medium text-muted">{k}</dt>
+              <div key={k} className="rounded-xl border-2 border-ink bg-paper p-3">
+                <dt className="text-sm font-bold text-muted">{k}</dt>
                 <dd className="mt-0.5 break-words text-base">{v}</dd>
               </div>
             ))}
@@ -41,7 +41,7 @@ export default function SmallClaims({ result, tenantName }: { result: CaseResult
           href={SELF_HELP}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-12 items-center justify-center rounded-xl border-2 border-ink px-5 py-3 text-lg font-semibold hover:bg-paper"
+          className="btn-pop flex min-h-12 items-center justify-center bg-white px-5 py-3 text-lg font-extrabold"
         >
           California courts small-claims help ↗
         </a>

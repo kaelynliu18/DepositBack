@@ -1,10 +1,12 @@
 import type { AgentEvent, LineItem, Verdict } from "@/lib/types";
+import Bubble from "./Bubble";
+import Mascot from "./Mascot";
 
 const LABEL: Record<Verdict, string> = { allowed: "Allowed", questionable: "Questionable", not_allowed: "Not allowed" };
 const BANNER: Record<Verdict, string> = {
-  allowed: "bg-ok-soft text-ok",
-  questionable: "bg-warn-soft text-warn",
-  not_allowed: "bg-bad-soft text-bad",
+  allowed: "bg-ok-soft",
+  questionable: "bg-warn-soft",
+  not_allowed: "bg-bad-soft",
 };
 
 interface Case {
@@ -35,30 +37,42 @@ export default function Courtroom({ events, items }: { events: AgentEvent[]; ite
 
   return (
     <section className="space-y-4">
-      <h2 className="font-display text-3xl font-bold">⚖️ In court</h2>
+      <div>
+        <h2 className="display text-3xl">In court</h2>
+        <p className="mt-1 text-base text-muted">For the biggest disputed charges, each side makes a case and the Judge rules.</p>
+      </div>
       {cases.map((c) => {
         const item = items?.find((i) => i.id === c.id);
         return (
-          <div key={c.id} className="rise space-y-3 rounded-2xl border border-line bg-white p-4 sm:p-5">
-            {item && <h3 className="text-xl font-semibold">{item.description}</h3>}
-            <div className="grid gap-3 sm:grid-cols-2">
+          <div key={c.id} className="pop rise dotgrid space-y-4 p-4 sm:p-5">
+            {item && <h3 className="text-xl font-extrabold tracking-tight">{item.description}</h3>}
+            <div className="grid gap-4 sm:grid-cols-2">
               {c.landlord && (
-                <blockquote className="slide-in border-l-4 border-ink/30 pl-3">
-                  <p className="text-sm font-semibold text-muted">🏢 Landlord&apos;s Advocate</p>
-                  <p className="mt-1 text-base leading-relaxed">{c.landlord}</p>
-                </blockquote>
+                <div className="flex items-start gap-2">
+                  <Mascot agent="landlord_advocate" size={44} className="mt-1 shrink-0" />
+                  <Bubble className="flex-1">
+                    <p className="font-mono text-xs font-semibold text-muted">Landlord&apos;s Advocate</p>
+                    <p className="mt-0.5 text-base leading-relaxed">{c.landlord}</p>
+                  </Bubble>
+                </div>
               )}
               {c.tenant && (
-                <blockquote className="slide-in border-l-4 border-accent pl-3 sm:col-start-2">
-                  <p className="text-sm font-semibold text-accent">🎓 Tenant&apos;s Advocate</p>
-                  <p className="mt-1 text-base leading-relaxed">{c.tenant}</p>
-                </blockquote>
+                <div className="flex items-start gap-2">
+                  <Mascot agent="tenant_advocate" size={44} className="mt-1 shrink-0" />
+                  <Bubble tone="sun" className="flex-1">
+                    <p className="font-mono text-xs font-semibold">Tenant&apos;s Advocate (you)</p>
+                    <p className="mt-0.5 text-base leading-relaxed">{c.tenant}</p>
+                  </Bubble>
+                </div>
               )}
             </div>
             {c.ruling && (
-              <div className={`rise rounded-xl p-4 ${BANNER[c.ruling.verdict]}`}>
-                <p className="text-lg font-bold">⚖️ Judge: {LABEL[c.ruling.verdict]}</p>
-                <p className="mt-1 text-base text-ink">{c.ruling.reason}</p>
+              <div className={`pop-sm rise flex items-start gap-3 p-4 ${BANNER[c.ruling.verdict]}`}>
+                <Mascot agent="judge" mood="done" size={52} className="shrink-0" />
+                <div>
+                  <p className="text-lg font-black">Judge: {LABEL[c.ruling.verdict]}</p>
+                  <p className="mt-1 text-base">{c.ruling.reason}</p>
+                </div>
               </div>
             )}
           </div>

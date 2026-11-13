@@ -5,5 +5,5 @@ export default function CaseSummary({ items, landlordName }: { items: LineItem[]
   const withheld = items.reduce((s, i) => s + i.amount, 0);
   const parts = [`${items.length} charge${items.length === 1 ? "" : "s"}`, `${formatMoney(withheld)} withheld`];
   if (landlordName) parts.push(landlordName);
-  return <p className="text-lg font-medium text-muted">{parts.join(" · ")}</p>;
+  return <p className="text-lg font-bold text-ink">{parts.join(" · ")}</p>;
 }

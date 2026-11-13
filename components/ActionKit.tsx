@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { buildMailto } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
+import Mascot from "./Mascot";
 
-const btn = "flex min-h-14 items-center justify-center rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:translate-y-px";
+const btn = "btn-pop flex min-h-14 items-center justify-center px-5 py-3 text-center text-lg font-extrabold";
 
 function download(name: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));
@@ -15,6 +16,21 @@ function download(name: string, text: string, type: string) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
+  return (
+    <div className="pop-sm space-y-3 p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-sun text-lg font-black">{n}</span>
+        <div>
+          <h3 className="text-xl font-black leading-tight">{title}</h3>
+          <p className="text-base text-muted">{hint}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export default function ActionKit({ result }: { result: CaseResult }) {
@@ -40,32 +56,50 @@ export default function ActionKit({ result }: { result: CaseResult }) {
   const mailto = letter === result.letter ? result.mailto : buildMailto(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
 
   return (
-    <section className="space-y-5 rounded-[28px] bg-ink p-5 text-white sm:p-8">
-      <h2 className="font-display text-4xl font-bold">Claude finished the job:</h2>
-      <textarea
-        value={letter}
-        onChange={(e) => setLetter(e.target.value)}
-        rows={16}
-        aria-label="Demand letter"
-        className="w-full rounded-2xl bg-white p-5 font-display text-lg leading-relaxed text-ink outline-none focus:ring-4 focus:ring-accent"
-      />
-      <div className="grid gap-3 sm:grid-cols-3">
-        <a href={mailto} className={`${btn} bg-accent text-white hover:bg-accent-dark`}>
-          Email landlord
-        </a>
-        <button onClick={() => copy("letter", letter)} className={`${btn} border-2 border-white/40 hover:bg-white/10`}>
-          {copied === "letter" ? "Copied ✓" : "Copy letter"}
-        </button>
-        <button onClick={() => download("depositback-followup.ics", result.ics, "text/calendar")} className={`${btn} border-2 border-white/40 hover:bg-white/10`}>
-          Add day-14 follow-up
-        </button>
+    <section className="pop dotgrid space-y-4 p-4 sm:p-7">
+      <div className="flex items-center gap-3">
+        <Mascot agent="paralegal" mood="done" size={64} className="shrink-0" />
+        <div>
+          <h2 className="display text-3xl sm:text-4xl">Claude finished the job:</h2>
+          <p className="text-base font-medium text-muted">Three quick steps left. About two minutes.</p>
+        </div>
       </div>
-      {result.followUpEmail && (
-        <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} w-full border-2 border-white/40 hover:bg-white/10`}>
-          {copied === "followup" ? "Copied ✓" : "Copy follow-up email"}
-        </button>
-      )}
-      <p className="text-sm text-white/60">Not legal advice. Review before sending. California only.</p>
+
+      <Step n={1} title="Read your letter" hint="Fix anything that isn't right. Your edits carry into the email.">
+        <textarea
+          value={letter}
+          onChange={(e) => setLetter(e.target.value)}
+          rows={14}
+          aria-label="Demand letter"
+          className="w-full rounded-xl border-[2.5px] border-ink bg-[#fffdf5] p-4 text-base leading-relaxed outline-none focus:shadow-[3px_3px_0_var(--color-accent)]"
+        />
+      </Step>
+
+      <Step n={2} title="Send it" hint="Opens your email app with the letter filled in, or copy it to send your own way.">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <a href={mailto} className={`${btn} nudge bg-accent`}>
+            Email landlord
+          </a>
+          <button onClick={() => copy("letter", letter)} className={`${btn} bg-white`}>
+            {copied === "letter" ? "Copied ✓" : "Copy letter"}
+          </button>
+        </div>
+      </Step>
+
+      <Step n={3} title="Set a reminder" hint="Your landlord gets 14 days to answer. This puts the day on your calendar.">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button onClick={() => download("depositback-followup.ics", result.ics, "text/calendar")} className={`${btn} bg-white`}>
+            Add day-14 follow-up
+          </button>
+          {result.followUpEmail && (
+            <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} bg-white`}>
+              {copied === "followup" ? "Copied ✓" : "Copy follow-up email"}
+            </button>
+          )}
+        </div>
+      </Step>
+
+      <p className="text-sm font-medium text-muted">Not legal advice. Review before sending. California only.</p>
     </section>
   );
 }

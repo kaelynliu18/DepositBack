@@ -3,12 +3,14 @@
 import { useEffect, useRef } from "react";
 import type { AgentEvent } from "@/lib/types";
 import { AGENTS } from "./agents";
+import Bubble from "./Bubble";
+import Mascot from "./Mascot";
 
 function Dots() {
   return (
     <span className="ml-1 inline-flex gap-1 align-middle" aria-label="working">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="dot h-1.5 w-1.5 rounded-full bg-accent" style={{ animationDelay: `${i * 0.18}s` }} />
+        <span key={i} className="dot h-2 w-2 rounded-full bg-ink" style={{ animationDelay: `${i * 0.18}s` }} />
       ))}
     </span>
   );
@@ -16,33 +18,26 @@ function Dots() {
 
 function FeedRow({ e }: { e: AgentEvent }) {
   const a = AGENTS[e.agent];
-  const working = e.status === "working";
-  const error = e.status === "error";
+  const mood = e.status === "working" ? "working" : e.status === "error" ? "error" : "done";
   return (
-    <li className="slide-in relative flex gap-3 pb-5 last:pb-1">
-      <div
-        className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 bg-white text-xl ${
-          working ? "pulse-ring border-accent" : error ? "border-warn" : "border-line"
-        }`}
-      >
-        {a.emoji}
-      </div>
-      <div className="min-w-0 flex-1 pt-0.5">
-        <p className="flex items-center gap-2 text-base font-semibold text-ink">
+    <li className="flex items-start gap-3">
+      <Mascot agent={e.agent} mood={mood} size={48} className="mt-1 shrink-0" />
+      <Bubble tone={e.status === "error" ? "warn" : "white"} className="min-w-0 flex-1">
+        <p className="font-mono text-xs font-semibold text-muted">
           {a.label}
-          {e.status === "done" && <span className="text-ok" aria-label="done">✓</span>}
-          {error && <span className="text-warn" aria-label="problem">!</span>}
+          {e.status === "done" && <span className="ml-2 text-ok">✓ done</span>}
+          {e.status === "error" && <span className="ml-2 text-warn">! problem</span>}
         </p>
-        <p className={`text-base leading-snug ${error ? "text-warn" : "text-muted"}`}>
+        <p className="mt-0.5 text-base font-medium leading-snug">
           {e.message}
-          {working && <Dots />}
+          {e.status === "working" && <Dots />}
         </p>
-      </div>
+      </Bubble>
     </li>
   );
 }
 
-/** Vertical timeline of agent events. Auto-scrolls to the newest row. */
+/** The agents' conversation, newest at the bottom. Auto-scrolls. */
 export default function AgentFeed({ events }: { events: AgentEvent[] }) {
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -52,9 +47,8 @@ export default function AgentFeed({ events }: { events: AgentEvent[] }) {
   }, [events]);
 
   return (
-    <div ref={scroller} className="max-h-[40vh] overflow-y-auto pr-1 sm:max-h-[55vh] lg:max-h-[calc(100vh-14rem)]">
-      <ul className="relative">
-        <span className="absolute bottom-3 left-5 top-3 w-px -translate-x-1/2 bg-line" aria-hidden />
+    <div ref={scroller} className="max-h-[40vh] overflow-y-auto py-1 pl-1 pr-2 sm:max-h-[55vh] lg:max-h-[calc(100vh-15rem)]">
+      <ul className="space-y-4">
         {events.map((e) => (
           <FeedRow key={e.id} e={e} />
         ))}

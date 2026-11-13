@@ -31,10 +31,10 @@ export default function Headline({ strongClaim, possibleClaim }: { strongClaim: 
   const strong = useCountUp(strongClaim);
   const possible = useCountUp(possibleClaim);
   return (
-    <section className="rounded-[28px] bg-accent p-6 text-white sm:p-8" aria-live="polite">
-      <p className="text-xl text-white/80">You can claim</p>
-      <p className="font-display text-7xl font-bold leading-none tracking-tight tabular-nums sm:text-8xl">{formatMoney(strong)}</p>
-      {possibleClaim > strongClaim && <p className="mt-3 text-xl text-white/80">(up to {formatMoney(possible)})</p>}
+    <section className="pop bg-accent p-6 sm:p-8" aria-live="polite">
+      <p className="text-xl font-bold">You can claim</p>
+      <p className="display text-7xl tabular-nums sm:text-8xl">{formatMoney(strong)}</p>
+      {possibleClaim > strongClaim && <p className="mt-3 text-xl font-bold">(up to {formatMoney(possible)})</p>}
     </section>
   );
 }

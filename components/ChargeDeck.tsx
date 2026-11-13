@@ -14,7 +14,7 @@ export default function ChargeDeck({ children, focusIndex }: { children: React.R
   function onScroll() {
     const el = track.current;
     if (!el || !el.firstElementChild) return;
-    const step = (el.firstElementChild as HTMLElement).offsetWidth + 12;
+    const step = (el.firstElementChild as HTMLElement).offsetWidth + 16;
     setActive(Math.min(count - 1, Math.max(0, Math.round(el.scrollLeft / step))));
   }
 
@@ -29,18 +29,21 @@ export default function ChargeDeck({ children, focusIndex }: { children: React.R
       <div
         ref={track}
         onScroll={onScroll}
-        className="no-scrollbar -mx-4 flex snap-x items-start snap-mandatory gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:block lg:space-y-3 lg:overflow-visible lg:px-0 lg:pb-0"
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-3 pt-1 lg:mx-0 lg:block lg:space-y-4 lg:overflow-visible lg:px-0 lg:pb-0"
       >
         {children.map((c, i) => (
-          <div key={i} className="w-[88%] shrink-0 snap-center lg:w-auto">
+          <div key={i} className="w-[86%] shrink-0 snap-center pr-1 lg:w-auto lg:pr-0">
             {c}
           </div>
         ))}
       </div>
       {count > 1 && (
-        <p className="mt-2 text-center text-sm text-muted lg:hidden" aria-hidden>
-          {active + 1} of {count}: swipe for more
-        </p>
+        <div className="mt-2 flex items-center justify-center gap-2 lg:hidden" aria-hidden>
+          {children.map((_, i) => (
+            <span key={i} className={`h-2.5 rounded-full border-2 border-ink transition-all ${i === active ? "w-6 bg-ink" : "w-2.5 bg-white"}`} />
+          ))}
+          <span className="ml-2 text-sm font-semibold text-muted">swipe</span>
+        </div>
       )}
     </div>
   );

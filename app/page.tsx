@@ -6,6 +6,8 @@ import AgentFeed from "@/components/AgentFeed";
 import CaseSummary from "@/components/CaseSummary";
 import ChargeCard, { ChargeSkeleton, type ChargePhotos } from "@/components/ChargeCard";
 import ChargeDeck from "@/components/ChargeDeck";
+import ChargeLegend from "@/components/ChargeLegend";
+import Coach from "@/components/Coach";
 import NowBar from "@/components/NowBar";
 import DeadlineBanner from "@/components/DeadlineBanner";
 import ErrorCard from "@/components/ErrorCard";
@@ -15,6 +17,7 @@ import IntakeForm from "@/components/IntakeForm";
 import SmallClaims from "@/components/SmallClaims";
 import PhotoRequest from "@/components/PhotoRequest";
 import { useCaseState } from "@/hooks/useCaseState";
+import { useTour } from "@/hooks/useTour";
 import { runCase } from "@/lib/caseManager";
 import { totals } from "@/lib/compute";
 import type { AgentEvent, CaseInput, CaseResult, FileInput, LineItem, PhotoPair } from "@/lib/types";
@@ -34,7 +37,9 @@ export default function Home() {
   const [tenantName, setTenantName] = useState("");
   const runId = useRef(0);
   const pendingRef = useRef<PendingPhotos | null>(null);
-  const { items: liveItems, meta } = useCaseState(events);
+  const view = useCaseState(events);
+  const { items: liveItems, meta } = view;
+  const tour = useTour({ live: phase !== "intake", events, view, result, blocked: !!pending });
 
   // Same id replaces the earlier event (working -> done).
   function onEvent(e: AgentEvent) {
@@ -87,6 +92,7 @@ export default function Home() {
 
   function reset() {
     runId.current++;
+    tour.reset();
     answerPhotos(null);
     setPhase("intake");
     setEvents([]);
@@ -114,15 +120,25 @@ export default function Home() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       {pending && <PhotoRequest key={pending.item.id} item={pending.item} onDone={answerPhotos} />}
-      <div className="mb-8 flex items-center justify-between sm:mb-10">
-        <span className="font-display text-2xl font-bold tracking-tight">
-          Deposit<span className="text-accent">Back</span>
+      <div className="mb-8 flex items-center justify-between gap-3 sm:mb-10">
+        <span className="flex items-center gap-2 text-xl font-black tracking-tighter sm:text-2xl">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border-[2.5px] border-ink bg-accent text-lg shadow-[3px_3px_0_var(--color-ink)]">$</span>
+          DepositBack
         </span>
-        {phase !== "intake" && (
-          <button onClick={reset} className="text-base font-medium text-muted underline hover:text-ink">
-            Start over
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button
+            onClick={() => tour.setEnabled(!tour.enabled)}
+            aria-pressed={tour.enabled}
+            className="whitespace-nowrap rounded-full border-2 border-ink bg-white px-3 py-1 text-sm font-bold hover:bg-sun"
+          >
+            Tips: {tour.enabled ? "on" : "off"}
           </button>
-        )}
+          {phase !== "intake" && (
+            <button onClick={reset} className="whitespace-nowrap text-base font-bold underline hover:text-accent-dark">
+              Start over
+            </button>
+          )}
+        </div>
       </div>
 
       {phase === "intake" && <IntakeForm onSubmit={start} />}
@@ -131,12 +147,13 @@ export default function Home() {
 
       {phase === "live" && !error && (
         <div className="space-y-6">
-          <NowBar events={events} waitingForPhotos={!!pending} finished={false} />
+          <NowBar events={events} waitingForPhotos={!!pending} />
           <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <AgentFeed events={events} />
           <div className="space-y-5">
             {items && <CaseSummary items={items} />}
             {items && <Headline strongClaim={strongClaim} possibleClaim={possibleClaim} />}
+            {items && <ChargeLegend />}
             <Courtroom events={events} items={items} />
             {cards}
           </div>
@@ -149,18 +166,20 @@ export default function Home() {
           {result.isLate && result.daysToStatement !== null && <DeadlineBanner days={result.daysToStatement} />}
           <CaseSummary items={result.items} landlordName={result.clerk.landlordName} />
           <Headline strongClaim={result.strongClaim} possibleClaim={result.possibleClaim} />
+          <ChargeLegend />
           <Courtroom events={events} items={items} />
           {cards}
           <ActionKit result={result} />
           <SmallClaims result={result} tenantName={tenantName} />
-          <details className="rounded-2xl border-2 border-line p-4">
-            <summary className="cursor-pointer text-lg font-medium text-muted">See how the agents worked</summary>
+          <details className="pop p-4">
+            <summary className="cursor-pointer text-lg font-extrabold">See how the agents worked</summary>
             <div className="mt-4">
               <AgentFeed events={events} />
             </div>
           </details>
         </div>
       )}
+      <Coach tip={tour.tip} onDismiss={tour.dismiss} onTurnOff={() => tour.setEnabled(false)} />
     </main>
   );
 }

@@ -32,8 +32,8 @@ export default function DropZone({ label, hint, accept, picked, busy, onFile, on
         const f = e.dataTransfer.files?.[0];
         if (f) onFile(f);
       }}
-      className={`relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed text-center transition-colors ${
-        over ? "border-accent bg-accent/5" : "border-line bg-paper hover:border-accent"
+      className={`relative flex flex-col items-center justify-center rounded-2xl border-[2.5px] border-dashed text-center transition-colors ${
+        over ? "border-ink bg-sun/40" : "border-ink/50 bg-white hover:border-ink hover:bg-sun/20"
       } ${compact ? "min-h-40 p-3" : "min-h-56 p-5"}`}
     >
       <input
@@ -55,9 +55,9 @@ export default function DropZone({ label, hint, accept, picked, busy, onFile, on
           ) : (
             <div className="text-5xl">📄</div>
           )}
-          <p className="max-w-full truncate text-sm text-muted">{picked.name}</p>
+          <p className="max-w-full truncate text-sm font-medium text-muted">{picked.name}</p>
           <div className="flex gap-4 text-sm font-medium">
-            <button type="button" onClick={() => ref.current?.click()} className="text-accent underline">
+            <button type="button" onClick={() => ref.current?.click()} className="text-ink underline">
               Replace
             </button>
             {onClear && (
@@ -70,7 +70,7 @@ export default function DropZone({ label, hint, accept, picked, busy, onFile, on
       ) : (
         <button type="button" onClick={() => ref.current?.click()} className="flex h-full w-full flex-col items-center justify-center gap-2">
           <span className="text-4xl">{busy ? "⏳" : "📤"}</span>
-          <span className={`${compact ? "text-base" : "text-lg"} font-semibold text-ink`}>{busy ? "Reading…" : label}</span>
+          <span className={`${compact ? "text-base" : "text-lg"} font-extrabold text-ink`}>{busy ? "Reading…" : label}</span>
           {hint && <span className="text-sm text-muted">{hint}</span>}
         </button>
       )}

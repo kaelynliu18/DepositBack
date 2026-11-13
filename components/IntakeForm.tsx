@@ -4,15 +4,17 @@ import { useState } from "react";
 import { useFileInput } from "@/hooks/useFileInput";
 import { loadSampleStatement } from "@/lib/client";
 import type { CaseInput } from "@/lib/types";
+import Bubble from "./Bubble";
 import DropZone from "./DropZone";
+import Mascot from "./Mascot";
 
 const inputCls =
-  "w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-lg text-ink outline-none transition-colors focus:border-accent";
+  "w-full rounded-xl border-[2.5px] border-ink bg-white px-4 py-3 text-lg font-medium outline-none transition-shadow focus:shadow-[3px_3px_0_var(--color-accent)]";
 
 const STEPS = [
-  "Upload your landlord's statement.",
-  "AI agents check every charge against California law.",
-  "Send the demand letter they write for you.",
+  { agent: "clerk" as const, title: "Upload", body: "Add the statement your landlord sent you." },
+  { agent: "judge" as const, title: "Watch", body: "A team of AI agents checks every charge against California law." },
+  { agent: "paralegal" as const, title: "Send", body: "Get a ready-to-send letter, email and reminder." },
 ];
 
 export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) => void }) {
@@ -50,23 +52,43 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
   }
 
   return (
-    <div className="rise grid items-start gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
-      <header className="space-y-6 lg:sticky lg:top-12">
-        <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-          Get your security deposit back.
+    <div className="rise grid items-start gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+      <header className="space-y-7 lg:sticky lg:top-8">
+        <h1 className="display text-6xl sm:text-7xl">
+          Get your <span className="marker">security deposit back.</span>
         </h1>
-        <p className="max-w-md text-xl leading-relaxed text-muted">California renters lose deposits to illegal deductions every move-out.</p>
-        <ol className="max-w-md space-y-3 border-l-2 border-accent pl-5">
+        <p className="max-w-md text-xl font-medium leading-relaxed text-muted">California renters lose deposits to illegal deductions every move-out.</p>
+
+        <div className="dotgrid pop space-y-3 p-4">
+          <div className="flex items-end gap-2">
+            <Mascot agent="clerk" mood="done" size={56} className="shrink-0" />
+            <Bubble className="flex-1">
+              <p className="text-base font-bold">Found 5 charges. Two look illegal.</p>
+            </Bubble>
+          </div>
+          <div className="flex items-end gap-2 sm:pl-10">
+            <Mascot agent="judge" mood="done" size={56} className="shrink-0" />
+            <Bubble tone="sun" className="flex-1">
+              <p className="text-base font-bold">Repainting between tenants is routine upkeep. Not allowed.</p>
+            </Bubble>
+          </div>
+        </div>
+
+        <ol className="grid gap-3 sm:grid-cols-3">
           {STEPS.map((s, i) => (
-            <li key={s} className="flex gap-3 text-lg">
-              <span className="font-bold text-accent">{i + 1}</span>
-              <span>{s}</span>
+            <li key={s.title} className="pop-sm flex gap-3 p-3 sm:flex-col">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-sun text-sm font-black">{i + 1}</span>
+                <span className="text-lg font-black">{s.title}</span>
+              </div>
+              <p className="text-base leading-snug text-muted">{s.body}</p>
             </li>
           ))}
         </ol>
       </header>
 
-      <form onSubmit={submit} className="space-y-6 rounded-[28px] border-2 border-ink bg-white p-5 sm:p-7">
+      <form onSubmit={submit} className="pop space-y-6 p-5 sm:p-7">
+        <h2 className="display text-3xl">Start your case</h2>
         <section className="space-y-3">
           <DropZone
             label="Drop your landlord's statement here"
@@ -77,38 +99,45 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
             onFile={stmt.pick}
             onClear={stmt.clear}
           />
-          {stmt.error && <p className="text-warn">{stmt.error}</p>}
-          <button
-            type="button"
-            onClick={useSample}
-            disabled={sampleBusy}
-            className="w-full rounded-xl border-2 border-ink px-4 py-3 text-lg font-semibold transition-colors hover:bg-ink hover:text-white disabled:opacity-60"
-          >
-            {sampleBusy ? "Loading…" : "Use sample statement"}
-          </button>
+          {stmt.error && <p className="font-medium text-warn">{stmt.error}</p>}
+          <div className="relative">
+            {!stmt.picked && (
+              <div className="nudge pointer-events-none absolute -top-10 right-2 z-10 rounded-xl border-2 border-ink bg-sun px-3 py-1 text-sm font-bold">
+                No statement handy? Try the sample ↓
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={useSample}
+              disabled={sampleBusy}
+              className="btn-pop w-full bg-white px-4 py-3 text-lg font-extrabold"
+            >
+              {sampleBusy ? "Loading…" : "Use sample statement"}
+            </button>
+          </div>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-base font-semibold">Your name</span>
+            <span className="text-base font-bold">Your name</span>
             <input required className={inputCls} value={tenantName} onChange={(e) => setName(e.target.value)} autoComplete="name" />
           </label>
           <label className="space-y-1">
-            <span className="text-base font-semibold">Deposit you paid ($)</span>
+            <span className="text-base font-bold">Deposit you paid ($)</span>
             <input required type="number" min="0" step="any" inputMode="decimal" className={inputCls} value={deposit} onChange={(e) => setDeposit(e.target.value)} />
           </label>
           <label className="space-y-1">
-            <span className="text-base font-semibold">Months lived there</span>
+            <span className="text-base font-bold">Months lived there</span>
             <input required type="number" min="0" inputMode="numeric" className={inputCls} value={months} onChange={(e) => setMonths(e.target.value)} />
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-base font-semibold">Move-out date</span>
+            <span className="text-base font-bold">Move-out date</span>
             <input required type="date" className={inputCls} value={moveOut} onChange={(e) => setMoveOut(e.target.value)} />
           </label>
         </section>
 
-        {err && <p className="text-warn">{err}</p>}
-        <button type="submit" className="w-full rounded-2xl bg-accent px-6 py-5 text-2xl font-bold text-white transition hover:bg-accent-dark active:translate-y-px">
+        {err && <p className="font-medium text-warn">{err}</p>}
+        <button type="submit" className="btn-pop w-full bg-accent px-6 py-5 text-2xl font-black">
           Start my case
         </button>
       </form>
