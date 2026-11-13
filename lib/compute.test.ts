@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildGcalUrl, buildGmailUrl, buildIcs, buildLetter, buildMailto, daysToStatement, isLate, mergeVerdicts, totals } from "./compute";
+import { buildGcalUrl, buildGmailUrl, buildIcs, buildLetter, buildMailto, citationFor, daysToStatement, isLate, letterReason, mergeVerdicts, totals } from "./compute";
 import type { ClerkResponse, CourtroomResponse, InspectorResponse } from "./types";
 
 const load = <T>(name: string): T => JSON.parse(readFileSync(join(__dirname, "../public/demo", name), "utf8")) as T;
@@ -86,6 +86,28 @@ assert.match(owesLetter, /keeps my full \$2,000 deposit and says I owe \$285 mor
 assert.match(owesLetter, /no more than \$135/);
 assert.match(owesLetter, /Please send me a corrected itemized statement within 14 days/);
 assert.doesNotMatch(owesLetter, /Please return/);
+
+// ---- Legal citations in the letter ----
+// internal labels are stripped from reasons
+assert.equal(letterReason("Light scuffs are normal wear after 11 months (Rule 3)."), "Light scuffs are normal wear after 11 months.");
+assert.equal(letterReason("The tenant wins: no receipt over $125 (Rule 3 / Rule 4)."), "No receipt over $125.");
+assert.equal(letterReason("Routine repainting is upkeep under Rule 3, not damage."), "Routine repainting is upkeep, not damage.");
+assert.equal(letterReason("Rule 6 / Rule 3: old carpet must be prorated."), "Old carpet must be prorated.");
+// citations: real code, topic text, deduped, unknown rule falls back to the general section
+assert.equal(citationFor("Rule 3 / Rule 4"), "(Cal. Civ. Code §1950.5: ordinary wear and tear; receipts required over $125)");
+assert.equal(citationFor("Rule 3 / Rule 3"), "(Cal. Civ. Code §1950.5: ordinary wear and tear)", "deduped");
+assert.equal(citationFor(""), "(Cal. Civ. Code §1950.5)");
+// the full letter: no "Rule N" anywhere, every disputed charge cites the code, no doubled citation, penalty paragraph
+const lawLetter = buildLetter({ clerk, items: items.map((i) => (i.id === "li3" ? { ...i, reason: "Scuffs are normal wear (Rule 3).", rule: "Rule 3 / Rule 3 / Rule 4" } : i)), moveOutDate: "2026-10-01", tenantName: "Alex Chen", strongClaim, days, late: true, depositAmount: 2400 });
+assert.doesNotMatch(lawLetter, /\bRules?\s*\d/, "no internal rule labels in the letter");
+for (const line of lawLetter.split("\n").filter((l) => l.startsWith("• "))) {
+  assert.match(line, /\(Cal\. Civ\. Code §1950\.5[^)]*\)$/, `disputed charge cites the code: ${line.slice(0, 50)}`);
+  assert.equal((line.match(/Cal\. Civ\. Code/g) ?? []).length, 1, "one citation per charge");
+  assert.equal((line.match(/ordinary wear and tear/g) ?? []).length <= 1, true, "topic not duplicated");
+}
+assert.match(lawLetter, /past the 21-day deadline in Cal\. Civ\. Code §1950\.5\./, "late sentence cites the code, no unverified subsection");
+assert.doesNotMatch(lawLetter, /§1950\.5\(g\)/, "old unverified (g) removed");
+assert.match(lawLetter, /bad faith may be ordered to pay statutory damages of up to twice the amount of the security deposit/, "bad-faith penalty paragraph");
 
 console.log("✓ compute tests passed: strongClaim 780, possibleClaim 2030, daysToStatement 27, isLate true");
 console.log("\n--- letter preview ---\n" + letter);

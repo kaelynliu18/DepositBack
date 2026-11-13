@@ -118,12 +118,51 @@ export function demandAmounts(items: LineItem[], strongClaim: number, depositAmo
 }
 
 /**
- * Judge reasons start with who won ("The tenant wins: ..."). That's great in the UI
- * but odd in a letter to the landlord, so drop the prefix there.
+ * Real-law citations for our internal rule numbers (lib/prompts.ts "Rule 1"–"Rule 6"), used ONLY in the
+ * letter. item.rule keeps the "Rule N" labels everywhere else (UI + contract).
+ *
+ * SUBSECTIONS ARE DELIBERATELY BLANK. We tried to verify subdivision letters against the current
+ * statute at https://leginfo.legislature.ca.gov (Civil Code §1950.5) and the AB 2801 bill text on
+ * 2026-11-13, but the site blocked automated access (Cloudflare challenge / HTTP 403), so nothing could
+ * be confirmed. AB 2801 may also have re-lettered subdivisions. Per our rule "never guess a subsection
+ * in a demand letter", every entry cites §1950.5 generally plus a plain-English topic.
+ * To add a subsection: copy it from the CURRENT leginfo text, set `sub` (e.g. "(b)"), and paste the
+ * one-line statute wording in a comment next to it.
+ */
+export const RULE_CITATIONS: Record<number, { sub: string | null; topic: string }> = {
+  1: { sub: null, topic: "21-day deadline" },
+  2: { sub: null, topic: "permitted deductions" },
+  3: { sub: null, topic: "ordinary wear and tear" },
+  4: { sub: null, topic: "receipts required over $125" },
+  5: { sub: null, topic: "photo documentation" },
+  6: { sub: null, topic: "proration for age" },
+};
+const CODE = "Cal. Civ. Code §1950.5";
+
+/** "(Cal. Civ. Code §1950.5: ordinary wear and tear …; receipts …)" for the rules tagged on a charge, deduped. */
+export function citationFor(rule: string): string {
+  const nums = [...new Set([...(rule ?? "").matchAll(/Rule\s*(\d+)/gi)].map((m) => Number(m[1])))].filter((n) => RULE_CITATIONS[n]);
+  if (nums.length === 0) return `(${CODE})`;
+  const subs = [...new Set(nums.map((n) => RULE_CITATIONS[n].sub).filter(Boolean))];
+  const code = subs.length ? `${CODE}${subs.join(", ")}` : CODE;
+  const topics = [...new Set(nums.map((n) => RULE_CITATIONS[n].topic))];
+  return `(${code}: ${topics.join("; ")})`;
+}
+
+/**
+ * Agent reason → letter sentence:
+ * - drops the Judge's "The tenant wins:" prefix (great in the UI, odd to a landlord)
+ * - strips internal labels like "(Rule 3)", "Rule 3 / Rule 4", "(Rules 3 and 4)"
  */
 export function letterReason(reason: string): string {
-  const stripped = reason.replace(/^\s*(the (tenant|landlord)('s argument)? wins[^:]*|neither side wins[^:]*):\s*/i, "");
-  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  let s = reason.replace(/^\s*(the (tenant|landlord)('s argument)? wins[^:]*|neither side wins[^:]*):\s*/i, "");
+  const label = String.raw`Rules?\s*\d+(?:\s*(?:\/|,|and|&|or)\s*(?:Rules?\s*)?\d+)*`;
+  s = s.replace(new RegExp(String.raw`\s*\(\s*(?:under|per|see)?\s*${label}\s*\)`, "gi"), ""); // "(Rule 3)"
+  s = s.replace(new RegExp(String.raw`\s*(?:,\s*)?(?:under|per|see)\s+${label}`, "gi"), ""); // "under Rule 3"
+  s = s.replace(new RegExp(String.raw`\s*${label}`, "gi"), ""); // bare "Rule 3 / Rule 4"
+  s = s.replace(/\(\s*\)/g, "").replace(/\s+([.,;:)])/g, "$1").replace(/\s{2,}/g, " ").replace(/[,;]\s*\./g, ".").trim();
+  s = s.replace(/^[\s:;,\-–—]+/, ""); // a label at the very start can leave a stray ": "
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export function buildLetter(p: LetterInput): string {
@@ -138,11 +177,12 @@ export function buildLetter(p: LetterInput): string {
     "",
     `I moved out of ${address}${p.moveOutDate ? ` on ${formatDate(p.moveOutDate)}` : ""}. I have reviewed ${stmt} under California Civil Code §1950.5 and dispute the following deductions:`,
     "",
-    ...disputed.map((i) => `• ${i.description} — ${formatMoney(i.amount)}: ${letterReason(i.reason)}`),
+    ...disputed.map((i) => `• ${i.description} — ${formatMoney(i.amount)}: ${letterReason(i.reason)} ${citationFor(i.rule)}`),
     "",
   ];
   if (p.late && p.days !== null) {
-    lines.push(`Your statement was sent ${p.days} days after I moved out, past the 21-day deadline in §1950.5(g).`, "");
+    // No subsection letter: not verifiable against current statute text (see RULE_CITATIONS).
+    lines.push(`Your statement was sent ${p.days} days after I moved out, past the 21-day deadline in ${CODE}.`, "");
   }
   // Normal case: ask for the strong claim back. If the landlord says the tenant owes MORE than
   // the deposit, removing bad charges may only shrink that bill, so say that instead.
@@ -161,7 +201,9 @@ export function buildLetter(p: LetterInput): string {
       ? `Please send me a corrected itemized statement within ${FOLLOW_UP_DAYS} days of this letter.`
       : `Please return ${formatMoney(d ? d.refundDue : p.strongClaim)} within ${FOLLOW_UP_DAYS} days of this letter.`;
   lines.push(
-    `${ask} If we cannot resolve this, I am prepared to file in small claims court, where a court may award up to twice the deposit for bad-faith retention.`,
+    `${ask} If we cannot resolve this, I am prepared to file in small claims court.`,
+    "",
+    `Under ${CODE}, a landlord who retains a security deposit in bad faith may be ordered to pay statutory damages of up to twice the amount of the security deposit, in addition to actual damages.`,
     "",
     "Sincerely,",
     p.tenantName,
