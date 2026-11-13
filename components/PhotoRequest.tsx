@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { useFileInput } from "@/hooks/useFileInput";
-import { loadSamplePhotos } from "@/lib/client";
 import { formatMoney } from "@/lib/compute";
 import type { LineItem, PhotoPair } from "@/lib/types";
 import DropZone from "./DropZone";
@@ -16,19 +14,6 @@ interface Props {
 export default function PhotoRequest({ item, onDone }: Props) {
   const moveIn = useFileInput();
   const moveOut = useFileInput();
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  async function sample() {
-    setBusy(true);
-    setErr(null);
-    try {
-      onDone(await loadSamplePhotos());
-    } catch {
-      setErr("Couldn't load the sample photos.");
-      setBusy(false);
-    }
-  }
 
   const ready = moveIn.picked && moveOut.picked;
 
@@ -51,22 +36,15 @@ export default function PhotoRequest({ item, onDone }: Props) {
             <DropZone compact label="Add photo" accept="image/*" picked={moveOut.picked} busy={moveOut.busy} onFile={moveOut.pick} onClear={moveOut.clear} />
           </div>
         </div>
-        {(moveIn.error || moveOut.error || err) && <p className="text-warn">{moveIn.error || moveOut.error || err}</p>}
+        {(moveIn.error || moveOut.error) && <p className="text-warn">{moveIn.error || moveOut.error}</p>}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
-            disabled={!ready || busy}
+            disabled={!ready}
             onClick={() => ready && onDone({ moveIn: moveIn.picked!.file, moveOut: moveOut.picked!.file })}
-            className="flex-1 btn-pop bg-accent px-5 py-3 text-lg font-extrabold"
+            className="flex-1 btn-pop bg-accent px-5 py-3 text-lg font-extrabold disabled:opacity-40"
           >
             Send to Inspector
-          </button>
-          <button
-            disabled={busy}
-            onClick={sample}
-            className="flex-1 btn-pop bg-white px-5 py-3 text-lg font-extrabold disabled:opacity-40"
-          >
-            {busy ? "Loading…" : "Use sample photos"}
           </button>
         </div>
         <div className="text-center">

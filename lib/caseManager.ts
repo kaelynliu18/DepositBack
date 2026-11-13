@@ -98,7 +98,7 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
     const friendly =
       err instanceof api.UnreadableError || raw.includes("60 seconds")
         ? raw
-        : "We couldn't read that statement. Try a clearer photo or a PDF, or use the sample statement.";
+        : "We couldn't read that statement. Try a clearer photo or a PDF.";
     emit("case_manager", "error", friendly, undefined, undefined, caseId);
     throw new Error(friendly);
   }

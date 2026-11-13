@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useFileInput } from "@/hooks/useFileInput";
-import { loadSampleStatement } from "@/lib/client";
 import type { CaseInput } from "@/lib/types";
 import Bubble from "./Bubble";
 import DropZone from "./DropZone";
@@ -23,20 +22,7 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
   const [deposit, setDeposit] = useState("");
   const [moveOut, setMoveOut] = useState("");
   const [months, setMonths] = useState("");
-  const [sampleBusy, setSampleBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
-  async function useSample() {
-    setSampleBusy(true);
-    setErr(null);
-    try {
-      stmt.setFile(await loadSampleStatement(), "sample-statement.jpg");
-    } catch {
-      setErr("Couldn't load the sample statement.");
-    } finally {
-      setSampleBusy(false);
-    }
-  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,21 +86,6 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
             onClear={stmt.clear}
           />
           {stmt.error && <p className="font-medium text-warn">{stmt.error}</p>}
-          <div className="relative">
-            {!stmt.picked && (
-              <div className="nudge pointer-events-none absolute -top-10 right-2 z-10 rounded-xl border-2 border-ink bg-sun px-3 py-1 text-sm font-bold">
-                No statement handy? Try the sample ↓
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={useSample}
-              disabled={sampleBusy}
-              className="btn-pop w-full bg-white px-4 py-3 text-lg font-extrabold"
-            >
-              {sampleBusy ? "Loading…" : "Use sample statement"}
-            </button>
-          </div>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
