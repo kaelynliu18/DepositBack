@@ -17,6 +17,18 @@ const STEPS = [
   { agent: "paralegal" as const, title: "Send", body: "Get a ready-to-send letter, email and reminder." },
 ];
 
+/** Field label with a required asterisk; shows a flag when autofill couldn't fill the field. */
+function FieldLabel({ text, flagged, note }: { text: string; flagged: boolean; note?: string }) {
+  return (
+    <span className="flex flex-wrap items-baseline gap-x-2 text-base font-bold">
+      <span>
+        {text} <span className="text-bad">*</span>
+      </span>
+      {flagged && <span className="text-sm font-bold text-warn">⚠ {note ?? "Please add"}</span>}
+    </span>
+  );
+}
+
 export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) => void }) {
   const stmt = useFileInput();
   const [tenantName, setName] = useState("");
@@ -44,6 +56,12 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickedData]);
   const autofill = !pickedData ? "idle" : fill?.forData !== pickedData ? "reading" : fill.ok ? "done" : "none";
+
+  // After autofill runs, any field still empty gets flagged so the user knows to fill it in.
+  const flag = (v: string) => (autofill === "done" || autofill === "none") && !v.trim();
+  const flaggedCount = [tenantName, deposit, months, moveOut].filter(flag).length;
+  const anyFlagged = flaggedCount > 0;
+  const fieldCls = (v: string) => (flag(v) ? `${inputCls} !border-warn !bg-warn-soft` : inputCls);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,7 +116,7 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
         <h2 className="display text-3xl">Start your case</h2>
         <section className="space-y-3">
           <DropZone
-            label="Drop your landlord's statement here"
+            label="Drop your landlord's statement here *"
             hint="Photo, screenshot or PDF. Or tap to browse."
             accept="image/*,application/pdf"
             picked={stmt.picked}
@@ -108,26 +126,34 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
           />
           {stmt.error && <p className="font-medium text-warn">{stmt.error}</p>}
           {autofill === "reading" && <p className="text-base font-medium text-muted">Reading your statement…</p>}
-          {autofill === "done" && <p className="text-base font-bold">✓ Filled in from your statement. Check it&apos;s right.</p>}
-          {autofill === "none" && <p className="text-base font-medium text-muted">Couldn&apos;t read your details. Please fill them in.</p>}
+          {autofill === "done" && (
+            <p className="text-base font-bold">
+              ✓ Filled in from your statement.{" "}
+              {anyFlagged ? <span className="text-warn">Add the highlighted field{flaggedCount > 1 ? "s" : ""} below.</span> : "Check it's right."}
+            </p>
+          )}
+          {autofill === "none" && <p className="text-base font-bold text-warn">Couldn&apos;t read your details. Please fill in the highlighted fields.</p>}
         </section>
 
+        <p className="text-sm font-medium text-muted">
+          <span className="text-bad">*</span> Required
+        </p>
         <section className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-base font-bold">Your name</span>
-            <input required className={inputCls} value={tenantName} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+            <FieldLabel text="Your name" flagged={flag(tenantName)} />
+            <input required className={fieldCls(tenantName)} value={tenantName} onChange={(e) => setName(e.target.value)} autoComplete="name" />
           </label>
           <label className="space-y-1">
-            <span className="text-base font-bold">Deposit you paid ($)</span>
-            <input required type="number" min="0" step="any" inputMode="decimal" className={inputCls} value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+            <FieldLabel text="Deposit you paid ($)" flagged={flag(deposit)} />
+            <input required type="number" min="0" step="any" inputMode="decimal" className={fieldCls(deposit)} value={deposit} onChange={(e) => setDeposit(e.target.value)} />
           </label>
           <label className="space-y-1">
-            <span className="text-base font-bold">Months lived there</span>
-            <input type="number" min="0" inputMode="numeric" placeholder="Optional" className={inputCls} value={months} onChange={(e) => setMonths(e.target.value)} />
+            <FieldLabel text="Months lived there" flagged={flag(months)} note="Not on statements" />
+            <input required type="number" min="1" inputMode="numeric" className={fieldCls(months)} value={months} onChange={(e) => setMonths(e.target.value)} />
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-base font-bold">Move-out date</span>
-            <input required type="date" className={inputCls} value={moveOut} onChange={(e) => setMoveOut(e.target.value)} />
+            <FieldLabel text="Move-out date" flagged={flag(moveOut)} />
+            <input required type="date" className={fieldCls(moveOut)} value={moveOut} onChange={(e) => setMoveOut(e.target.value)} />
           </label>
         </section>
 
