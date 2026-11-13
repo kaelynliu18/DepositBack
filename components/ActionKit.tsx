@@ -4,11 +4,13 @@ import { useState } from "react";
 import { buildGcalUrl, buildGmailUrl, followUpDate } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 import Mascot from "./Mascot";
+import TipTarget from "./TipTarget";
 
 const btn = "btn-pop flex min-h-14 items-center justify-center px-5 py-3 text-center text-lg font-extrabold";
 
-function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
+function Step({ id, n, title, hint, children }: { id: string; n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
+    <TipTarget id={id}>
     <div className="pop-sm space-y-3 p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-sun text-lg font-black">{n}</span>
@@ -19,6 +21,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
       </div>
       {children}
     </div>
+    </TipTarget>
   );
 }
 
@@ -57,7 +60,7 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         </div>
       </div>
 
-      <Step n={1} title="Read your letter" hint="Fix anything that isn't right. Your edits carry into the email.">
+      <Step id="letter" n={1} title="Read your letter" hint="Fix anything that isn't right. Your edits carry into the email.">
         <textarea
           value={letter}
           onChange={(e) => setLetter(e.target.value)}
@@ -67,7 +70,7 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         />
       </Step>
 
-      <Step n={2} title="Send it" hint="Opens a Gmail draft with the letter filled in, or copy it to send your own way.">
+      <Step id="send" n={2} title="Send it" hint="Opens a Gmail draft with the letter filled in, or copy it to send your own way.">
         <div className="grid gap-3 sm:grid-cols-2">
           <a href={gmail} target="_blank" rel="noopener noreferrer" className={`${btn} nudge bg-accent`}>
             Email landlord
@@ -78,7 +81,7 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         </div>
       </Step>
 
-      <Step n={3} title="Set a reminder" hint="Your landlord gets time to answer. This puts the deadline on your Google Calendar.">
+      <Step id="remind" n={3} title="Set a reminder" hint="Your landlord gets time to answer. This puts the deadline on your Google Calendar.">
         <div className="grid gap-3 sm:grid-cols-2">
           <a href={gcal} target="_blank" rel="noopener noreferrer" className={`${btn} bg-white`}>
             <span className="flex flex-col leading-tight">

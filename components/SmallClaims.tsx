@@ -1,5 +1,6 @@
 import { formatMoney } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
+import TipTarget from "./TipTarget";
 
 const SELF_HELP = "https://selfhelp.courts.ca.gov/small-claims-california";
 
@@ -21,6 +22,7 @@ export default function SmallClaims({ result, tenantName }: { result: CaseResult
   ];
 
   return (
+    <TipTarget id="smallclaims">
     <details className="pop p-4 sm:p-5">
       <summary className="cursor-pointer text-xl font-black">If they ignore you: small claims</summary>
       <div className="mt-4 space-y-4">
@@ -48,5 +50,6 @@ export default function SmallClaims({ result, tenantName }: { result: CaseResult
         <p className="text-sm text-muted">Not legal advice. Check filing limits and deadlines with the court.</p>
       </div>
     </details>
+    </TipTarget>
   );
 }

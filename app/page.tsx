@@ -17,7 +17,9 @@ import IntakeForm from "@/components/IntakeForm";
 import SmallClaims from "@/components/SmallClaims";
 import PhotoRequest from "@/components/PhotoRequest";
 import { useCaseState } from "@/hooks/useCaseState";
+import { useSectionFocus } from "@/hooks/useSectionFocus";
 import { useTour } from "@/hooks/useTour";
+import TipTarget, { ActiveTipSection } from "@/components/TipTarget";
 import { runCase } from "@/lib/caseManager";
 import { totals } from "@/lib/compute";
 import type { AgentEvent, CaseInput, CaseResult, FileInput, LineItem, PhotoPair } from "@/lib/types";
@@ -39,7 +41,8 @@ export default function Home() {
   const pendingRef = useRef<PendingPhotos | null>(null);
   const view = useCaseState(events);
   const { items: liveItems, meta } = view;
-  const tour = useTour({ live: phase !== "intake", events, view, result, blocked: !!pending });
+  const focus = useSectionFocus(phase !== "intake" && !pending, `${phase}:${view.items?.length ?? 0}:${events.length}`);
+  const tour = useTour({ live: phase !== "intake", events, view, result, blocked: !!pending, focus });
 
   // Same id replaces the earlier event (working -> done).
   function onEvent(e: AgentEvent) {
@@ -117,7 +120,17 @@ export default function Home() {
     </ChargeDeck>
   );
 
+  const charges = (
+    <TipTarget id="charges">
+      <div className="space-y-3">
+        <ChargeLegend />
+        {cards}
+      </div>
+    </TipTarget>
+  );
+
   return (
+    <ActiveTipSection.Provider value={tour.tip?.section ?? null}>
     <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       {pending && <PhotoRequest key={pending.item.id} item={pending.item} onDone={answerPhotos} />}
       <div className="mb-8 flex items-center justify-between gap-3 sm:mb-10">
@@ -149,13 +162,18 @@ export default function Home() {
         <div className="space-y-6">
           <NowBar events={events} waitingForPhotos={!!pending} />
           <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <AgentFeed events={events} />
+          <TipTarget id="feed">
+            <AgentFeed events={events} />
+          </TipTarget>
           <div className="space-y-5">
             {items && <CaseSummary items={items} />}
-            {items && <Headline strongClaim={strongClaim} possibleClaim={possibleClaim} />}
-            {items && <ChargeLegend />}
+            {items && (
+              <TipTarget id="claim">
+                <Headline strongClaim={strongClaim} possibleClaim={possibleClaim} />
+              </TipTarget>
+            )}
             <Courtroom events={events} items={items} />
-            {cards}
+            {charges}
           </div>
           </div>
         </div>
@@ -165,10 +183,11 @@ export default function Home() {
         <div className="rise mx-auto max-w-3xl space-y-6">
           {result.isLate && result.daysToStatement !== null && <DeadlineBanner days={result.daysToStatement} />}
           <CaseSummary items={result.items} landlordName={result.clerk.landlordName} />
-          <Headline strongClaim={result.strongClaim} possibleClaim={result.possibleClaim} />
-          <ChargeLegend />
+          <TipTarget id="claim">
+            <Headline strongClaim={result.strongClaim} possibleClaim={result.possibleClaim} />
+          </TipTarget>
           <Courtroom events={events} items={items} />
-          {cards}
+          {charges}
           <ActionKit result={result} />
           <SmallClaims result={result} tenantName={tenantName} />
           <details className="pop p-4">
@@ -181,5 +200,6 @@ export default function Home() {
       )}
       <Coach tip={tour.tip} onDismiss={tour.dismiss} onTurnOff={() => tour.setEnabled(false)} />
     </main>
+    </ActiveTipSection.Provider>
   );
 }

@@ -8,9 +8,23 @@ export interface Tip {
   id: string;
   title: string;
   body: string;
+  /** The page section this tip points at (ringed while the tip shows). */
+  section?: string;
 }
 
 const STORE_KEY = "depositback-tips";
+
+/** What each part of the page is, in plain words. Shown when the reader pauses on it. */
+const SECTION_TIPS: Tip[] = [
+  { id: "feed", title: "The team's chat", body: "Each bubble is one agent reporting what it found. The newest message is at the bottom." },
+  { id: "claim", title: "Your total", body: "This is what you can most likely get back. The number in brackets also counts the questionable charges, if they go your way." },
+  { id: "court", title: "The courtroom", body: "For the biggest disputed charges, one advocate argues for the landlord and one for you. Then the Judge rules, which can change a verdict." },
+  { id: "charges", title: "Your charge cards", body: "One card per line on the statement. The colored edge is the verdict, and the name at the bottom is who decided it. On a phone, swipe sideways." },
+  { id: "letter", title: "Step 1: your letter", body: "Written from the final verdicts, citing the charges you're disputing. You can edit anything, and your edits carry into the email." },
+  { id: "send", title: "Step 2: send it", body: "Opens a Gmail draft addressed to your landlord. Nothing is sent until you press send in Gmail." },
+  { id: "remind", title: "Step 3: the reminder", body: "Adds the deadline to Google Calendar so you remember to follow up if your landlord goes quiet." },
+  { id: "smallclaims", title: "If they ignore you", body: "Your backup plan: small claims court. This shows the details you'd put on California form SC-100." },
+];
 
 function readEnabled(): boolean {
   try {
@@ -21,13 +35,14 @@ function readEnabled(): boolean {
 }
 
 /** One-time coaching tips, each shown once at the moment it becomes relevant. */
-export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView; result: CaseResult | null; blocked: boolean }) {
+export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView; result: CaseResult | null; blocked: boolean; focus: string | null }) {
   const [enabled, setEnabledState] = useState(readEnabled);
   const [seen, setSeen] = useState<Set<string>>(new Set());
 
   const hasOverride = Object.values(p.view.meta).some((m) => m.override && m.override.from !== m.override.to);
 
   // First tip whose moment has arrived and that hasn't been shown yet.
+  const sectionTips: (Tip & { when: boolean })[] = SECTION_TIPS.map((t) => ({ ...t, section: t.id, when: p.focus === t.id }));
   const tips: (Tip & { when: boolean })[] = [
     {
       id: "start",
@@ -36,7 +51,7 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
       body: "Nothing to do yet. The top panel shows who is working and what step you're on. I'll tell you if I need anything.",
     },
     {
-      id: "charges",
+      id: "charges-intro",
       when: !!p.view.items,
       title: "These are your landlord's charges",
       body: "Green means fair, amber means worth arguing, red means likely illegal. Colors can change as the team rules, and your total updates with them.",
@@ -53,10 +68,13 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
       title: "All done. Your turn.",
       body: "Follow the three steps below: read the letter, send it, set the reminder. Then you're finished.",
     },
+    ...sectionTips,
   ];
   // The final tip jumps the queue so it is never stale; the rest show in order.
   const ready = tips.filter((t) => t.when && !seen.has(t.id));
-  const current = enabled && !p.blocked && !seen.has("result") ? (ready.find((t) => t.id === "result") ?? ready[0] ?? null) : null;
+  // Order: the final tip, then whatever section the reader is looking at, then the timeline tips.
+  const pick = ready.find((t) => t.id === "result") ?? ready.find((t) => t.section) ?? ready[0] ?? null;
+  const current = enabled && !p.blocked && !(seen.has("result") && !pick?.section) ? pick : null;
 
   const dismiss = useCallback(() => {
     if (current) setSeen((s) => new Set(s).add(current.id));
@@ -71,6 +89,7 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
 
   const setEnabled = useCallback((on: boolean) => {
     setEnabledState(on);
+    if (on) setSeen(new Set()); // turning tips back on replays them
     try {
       localStorage.setItem(STORE_KEY, on ? "on" : "off");
     } catch {}
@@ -78,5 +97,5 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
 
   const reset = useCallback(() => setSeen(new Set()), []);
 
-  return { tip: current ? { id: current.id, title: current.title, body: current.body } : null, dismiss, enabled, setEnabled, reset };
+  return { tip: current ? { id: current.id, title: current.title, body: current.body, section: current.section } : null, dismiss, enabled, setEnabled, reset };
 }

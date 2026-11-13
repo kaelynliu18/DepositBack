@@ -1,6 +1,7 @@
 import type { AgentEvent, LineItem, Verdict } from "@/lib/types";
 import Bubble from "./Bubble";
 import Mascot from "./Mascot";
+import TipTarget from "./TipTarget";
 
 const LABEL: Record<Verdict, string> = { allowed: "Allowed", questionable: "Questionable", not_allowed: "Not allowed" };
 const BANNER: Record<Verdict, string> = {
@@ -36,6 +37,7 @@ export default function Courtroom({ events, items }: { events: AgentEvent[]; ite
   if (cases.length === 0) return null;
 
   return (
+    <TipTarget id="court">
     <section className="space-y-4">
       <div>
         <h2 className="display text-3xl">In court</h2>
@@ -79,5 +81,6 @@ export default function Courtroom({ events, items }: { events: AgentEvent[]; ite
         );
       })}
     </section>
+    </TipTarget>
   );
 }
