@@ -8,8 +8,10 @@ export interface Tip {
   id: string;
   title: string;
   body: string;
-  /** The page section this tip points at (ringed while the tip shows). */
+  /** The page section this tip points at: it gets a ring and the tip pops up beside it. */
   section?: string;
+  /** True for tips triggered by what the reader is scrolled to (they outrank the timeline tips). */
+  scroll?: boolean;
 }
 
 const STORE_KEY = "depositback-tips";
@@ -42,28 +44,32 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
   const hasOverride = Object.values(p.view.meta).some((m) => m.override && m.override.from !== m.override.to);
 
   // First tip whose moment has arrived and that hasn't been shown yet.
-  const sectionTips: (Tip & { when: boolean })[] = SECTION_TIPS.map((t) => ({ ...t, section: t.id, when: p.focus === t.id }));
+  const sectionTips: (Tip & { when: boolean })[] = SECTION_TIPS.map((t) => ({ ...t, section: t.id, scroll: true, when: p.focus === t.id }));
   const tips: (Tip & { when: boolean })[] = [
     {
       id: "start",
+      section: "now",
       when: p.live && p.events.length > 0 && !p.view.items, // stale once charges appear
       title: "Your AI team is on it",
       body: "Nothing to do yet. The top panel shows who is working and what step you're on. I'll tell you if I need anything.",
     },
     {
       id: "charges-intro",
+      section: "charges",
       when: !!p.view.items,
       title: "These are your landlord's charges",
       body: "Green means fair, amber means worth arguing, red means likely illegal. Colors can change as the team rules, and your total updates with them.",
     },
     {
       id: "override",
+      section: "charges",
       when: hasOverride,
       title: "A verdict just changed",
       body: "The Judge or Inspector looked closer and changed a charge. The old verdict is crossed out, and your total moves with it.",
     },
     {
       id: "result",
+      section: "claim",
       when: !!p.result,
       title: "All done. Your turn.",
       body: "Follow the three steps below: read the letter, send it, set the reminder. Then you're finished.",
@@ -73,8 +79,8 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
   // The final tip jumps the queue so it is never stale; the rest show in order.
   const ready = tips.filter((t) => t.when && !seen.has(t.id));
   // Order: the final tip, then whatever section the reader is looking at, then the timeline tips.
-  const pick = ready.find((t) => t.id === "result") ?? ready.find((t) => t.section) ?? ready[0] ?? null;
-  const current = enabled && !p.blocked && !(seen.has("result") && !pick?.section) ? pick : null;
+  const pick = ready.find((t) => t.id === "result") ?? ready.find((t) => t.scroll) ?? ready[0] ?? null;
+  const current = enabled && !p.blocked && !(seen.has("result") && !pick?.scroll) ? pick : null;
 
   const dismiss = useCallback(() => {
     if (current) setSeen((s) => new Set(s).add(current.id));

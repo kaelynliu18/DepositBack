@@ -160,7 +160,9 @@ export default function Home() {
 
       {phase === "live" && !error && (
         <div className="space-y-6">
-          <NowBar events={events} waitingForPhotos={!!pending} />
+          <TipTarget id="now">
+            <NowBar events={events} waitingForPhotos={!!pending} />
+          </TipTarget>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <TipTarget id="feed">
             <AgentFeed events={events} />
