@@ -15,7 +15,9 @@ export function ChargeSkeleton() {
   );
 }
 
-export default function ChargeCard({ item, meta }: { item: LineItem; meta?: ChargeMeta }) {
+export interface ChargePhotos { moveIn: string; moveOut: string }
+
+export default function ChargeCard({ item, meta, photos }: { item: LineItem; meta?: ChargeMeta; photos?: ChargePhotos }) {
   const v = VERDICT[item.verdict];
   const o = meta?.override;
   const changed = o && o.from !== o.to;
@@ -49,8 +51,21 @@ export default function ChargeCard({ item, meta }: { item: LineItem; meta?: Char
         </span>
       </div>
 
-      {meta?.inspector?.changeObserved && (
-        <p className="mt-3 rounded-lg bg-cyan-50 p-3 text-sm text-cyan-900">🔍 {meta.inspector.changeObserved}</p>
+      {(meta?.inspector || photos) && (
+        <div className="mt-3 space-y-2 rounded-xl bg-cyan-50 p-3">
+          {photos && (
+            <div className="grid grid-cols-2 gap-2">
+              {([["Move-in", photos.moveIn], ["Move-out", photos.moveOut]] as const).map(([label, src]) => (
+                <figure key={label} className="space-y-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`${label} photo`} className="aspect-[4/3] w-full rounded-lg object-cover" />
+                  <figcaption className="text-xs font-medium text-cyan-900">{label}</figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+          {meta?.inspector?.changeObserved && <p className="text-sm text-cyan-900">🔍 {meta.inspector.changeObserved}</p>}
+        </div>
       )}
       {meta?.photosSkipped && <p className="mt-2 text-xs text-slate-400">photos skipped</p>}
     </article>
