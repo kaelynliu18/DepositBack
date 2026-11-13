@@ -1,10 +1,12 @@
 // Courtroom: Landlord's Advocate + Tenant's Advocate run in parallel, then the Judge.
 // Streams NDJSON (one CourtroomStreamEvent per line) so the UI shows each argument and
 // ruling the moment it exists. Last line is { type: "done", rulings }.
-// ?demo=1, or the Judge failing twice, streams the fixture rulings instead.
+// ?demo=1 streams the fixture. If the Judge fails twice, the fixture is used ONLY when the
+// charges are the sample's; otherwise an error line (the case keeps the Clerk's verdicts).
 import fixture from "@/public/demo/courtroom.json";
 import { callTool, type ObjectSchema } from "@/lib/claude";
 import { JUDGE_PROMPT, LANDLORD_ADVOCATE_PROMPT, TENANT_ADVOCATE_PROMPT } from "@/lib/prompts";
+import { isSampleDocket } from "@/lib/demoFallback";
 import type { CourtroomRequest, CourtroomStreamEvent } from "@/lib/client";
 import type { LineItem, Ruling, Verdict } from "@/lib/types";
 
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
       };
 
       try {
-        if (demo || items.length === 0 || !body) {
+        if (demo || !body || items.length === 0) {
           serveFixture();
           return;
         }
@@ -129,8 +131,13 @@ export async function POST(req: Request) {
             { description: "Submit one ruling per charge.", effort: "medium", maxTokens: 6000 },
           );
         } catch (err) {
-          console.error("[courtroom] judge failed twice, serving fixture:", err);
-          serveFixture();
+          if (isSampleDocket(items)) {
+            console.error("[courtroom] judge failed twice on the sample, serving fixture:", err);
+            serveFixture();
+          } else {
+            console.error("[courtroom] judge failed twice:", err);
+            send({ type: "error", message: "The judge couldn't rule." });
+          }
           return;
         }
 

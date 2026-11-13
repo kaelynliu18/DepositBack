@@ -44,6 +44,7 @@ async function twice<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (first) {
+    if (first instanceof api.UnreadableError) throw first; // a retry won't help
     console.warn("Agent call failed, retrying once:", first);
     return fn();
   }
@@ -93,8 +94,13 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
     // Without the Clerk there are no charges to work on, so this is the one fatal error.
     timedOut = false; // make sure the failure itself always reaches the feed
     emit("clerk", "error", "Couldn't read the statement. Try a clearer photo or PDF.", undefined, undefined, clerkId);
-    emit("case_manager", "error", (err as Error).message, undefined, undefined, caseId);
-    throw err instanceof Error ? err : new Error(String(err));
+    const raw = err instanceof Error ? err.message : String(err);
+    const friendly =
+      err instanceof api.UnreadableError || raw.includes("60 seconds")
+        ? raw
+        : "We couldn't read that statement. Try a clearer photo or a PDF, or use the sample statement.";
+    emit("case_manager", "error", friendly, undefined, undefined, caseId);
+    throw new Error(friendly);
   }
   const who = clerk.landlordName ? `${clerk.landlordName}'s statement` : "the statement";
   // Charge cards can render right away from payload.lineItems.

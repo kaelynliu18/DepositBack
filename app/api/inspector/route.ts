@@ -1,9 +1,11 @@
 // Inspector: compares a move-in photo with a move-out photo of the same spot.
-// ?demo=1, or Claude failing twice, returns the fixture with header x-demo-fallback: 1.
+// ?demo=1 returns the fixture. If Claude fails twice, the fixture is returned ONLY for the
+// sample photos; otherwise 502 (the case keeps the Clerk's verdict for that charge).
 import { NextResponse } from "next/server";
 import fixture from "@/public/demo/inspector.json";
 import { callTool, fileBlock, type ObjectSchema } from "@/lib/claude";
 import { INSPECTOR_PROMPT } from "@/lib/prompts";
+import { isSampleFile } from "@/lib/demoFallback";
 import type { InspectorRequest } from "@/lib/client";
 import type { InspectorResponse } from "@/lib/types";
 
@@ -59,7 +61,11 @@ export async function POST(req: Request) {
     const result: InspectorResponse = { ...r, lineItemId, classification, verdict };
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[inspector] failed twice, serving fixture:", err);
-    return fallback();
+    if (isSampleFile(body.moveIn.data, "wall-movein.jpg") && isSampleFile(body.moveOut.data, "wall-moveout.jpg")) {
+      console.error("[inspector] failed twice on the sample photos, serving fixture:", err);
+      return fallback();
+    }
+    console.error("[inspector] failed twice:", err);
+    return NextResponse.json({ error: "Couldn't compare the photos." }, { status: 502 });
   }
 }

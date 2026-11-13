@@ -73,6 +73,28 @@ const result = await runCase(input, {
 | Inspector | Compares move-in vs move-out photos | `app/api/inspector` |
 | Paralegal | Letter, mailto, .ics, follow-up email (pure code) | `lib/compute.ts` |
 
+## 🚨 If the demo breaks on stage
+
+| Symptom | Do this |
+|---|---|
+| Anything weird, slow, or erroring | Add **`?demo=1`** to the URL and rerun with "Use sample statement" + "Use sample photos". No API calls, same story, ~7s. |
+| "We couldn't read the amounts…" | The photo is too blurry/small. Use the sample statement or a PDF. |
+| Wrong API key / no credits / Claude down | The **sample** statement and photos still work (server falls back to `public/demo/*.json`). Other uploads show a "try again" card, never someone else's data. |
+| Case takes >60s | `runCase` throws a timeout error; the error card offers demo mode. |
+
+**Live timings** (Sonnet 5.5, measured): Clerk 7–12s, advocates 3s (parallel), Inspector 3–6s, Judge 3s → full case ~13–16s.
+
+## Testing the API directly
+
+```bash
+npm run dev
+# Clerk with the sample statement (expect 5 charges; header x-demo-fallback absent = real Claude)
+python3 -c "import base64,json;print(json.dumps({'statement':{'mediaType':'image/jpeg','data':base64.b64encode(open('public/demo/statement.jpg','rb').read()).decode()},'depositAmount':2400,'moveOutDate':'2026-10-01','tenancyMonths':11,'tenantName':'Alex Chen'}))" > /tmp/clerk.json
+curl -s -D - -X POST localhost:3000/api/clerk -H 'content-type: application/json' --data @/tmp/clerk.json
+```
+
+Server logs print one line per Claude call: `[claude] report_charges ok in 8587ms (attempt 1, …)`.
+
 ## Tests
 
 ```bash

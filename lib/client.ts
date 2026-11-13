@@ -44,6 +44,14 @@ export function isDemo(): boolean {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** The Clerk couldn't read the upload (blurry, cut off, not a statement). Not worth retrying. */
+export class UnreadableError extends Error {
+  constructor() {
+    super("We couldn't read the amounts on that statement. Try a sharper, closer photo or a PDF.");
+    this.name = "UnreadableError";
+  }
+}
+
 async function fixture<T>(name: string, delayMs: number): Promise<T> {
   await sleep(delayMs);
   const res = await fetch(`/demo/${name}.json`);
@@ -57,6 +65,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (res.status === 422) throw new UnreadableError();
   if (!res.ok) throw new Error(`${path} failed: ${res.status} ${await res.text().catch(() => "")}`);
   if (res.headers.get("x-demo-fallback") === "1") console.warn(`${path} returned the demo fixture (fallback)`);
   return res.json() as Promise<T>;

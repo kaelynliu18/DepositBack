@@ -1,9 +1,11 @@
 // Clerk: reads the statement, extracts every charge, gives a verdict + route for each.
-// ?demo=1, or Claude failing twice, returns the fixture with header x-demo-fallback: 1.
+// ?demo=1 returns the fixture. If Claude fails twice, the fixture is returned ONLY when the
+// upload is the sample statement; any other upload gets a 502 so the UI shows "try again".
 import { NextResponse } from "next/server";
 import fixture from "@/public/demo/clerk.json";
 import { callTool, fileBlock, type ObjectSchema } from "@/lib/claude";
 import { CLERK_PROMPT } from "@/lib/prompts";
+import { isSampleFile } from "@/lib/demoFallback";
 import type { ClerkRequest } from "@/lib/client";
 import type { ClerkResponse, LineItem } from "@/lib/types";
 
@@ -15,6 +17,7 @@ const nullableString = { type: ["string", "null"] };
 const SCHEMA: ObjectSchema = {
   type: "object",
   properties: {
+    unreadable: { type: "boolean", description: "true if the text or amounts can't be read clearly" },
     landlordName: nullableString,
     landlordEmail: nullableString,
     propertyAddress: nullableString,
@@ -40,7 +43,7 @@ const SCHEMA: ObjectSchema = {
     },
     otherIssues: { type: "array", items: { type: "string" } },
   },
-  required: ["landlordName", "landlordEmail", "propertyAddress", "statementDate", "lineItems", "otherIssues"],
+  required: ["unreadable", "landlordName", "landlordEmail", "propertyAddress", "statementDate", "lineItems", "otherIssues"],
   additionalProperties: false,
 };
 
@@ -58,7 +61,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const raw = await callTool<Omit<ClerkResponse, "lineItems"> & { lineItems: Omit<LineItem, "decidedBy">[] }>(
+    const raw = await callTool<Omit<ClerkResponse, "lineItems"> & { unreadable: boolean; lineItems: Omit<LineItem, "decidedBy">[] }>(
       CLERK_PROMPT,
       [
         fileBlock(body.statement),
@@ -71,6 +74,12 @@ export async function POST(req: Request) {
       SCHEMA,
       { description: "Report every deduction on the statement plus the landlord details.", effort: "medium" },
     );
+
+    // Unreadable upload: tell the user right away (no retry, no fixture).
+    if (raw.unreadable || raw.lineItems.length === 0) {
+      console.warn("[clerk] statement unreadable or no charges found");
+      return NextResponse.json({ error: "unreadable" }, { status: 422 });
+    }
 
     // Clean up in code: stable ids, real numbers, decidedBy, valid date.
     const result: ClerkResponse = {
@@ -88,7 +97,11 @@ export async function POST(req: Request) {
     };
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[clerk] failed twice, serving fixture:", err);
-    return fallback();
+    if (isSampleFile(body.statement.data, "statement.jpg")) {
+      console.error("[clerk] failed twice on the sample, serving fixture:", err);
+      return fallback();
+    }
+    console.error("[clerk] failed twice:", err);
+    return NextResponse.json({ error: "Couldn't read the statement. Please try again." }, { status: 502 });
   }
 }
