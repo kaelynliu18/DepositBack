@@ -1,0 +1,11 @@
+Demo upload files for DepositBack+ (drag these into the app).
+
+IMG_4821.jpg
+  Synthetic: a fictional itemized deposit statement rendered as a "phone photo". Bayview Property
+  Management, the tenant and all addresses are made up (example.com email).
+
+living-room-wall-move-in.jpg, living-room-wall-move-out.jpg
+  Based on "Modern light switch panel on a plain wall in a room" by Shixart1985,
+  https://commons.wikimedia.org/wiki/File:Modern_light_switch_panel_on_a_plain_wall_in_a_room.jpg
+  licensed CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/).
+  Changes: resized, exposure/framing adjusted; the move-out version adds synthetic scuff marks.
