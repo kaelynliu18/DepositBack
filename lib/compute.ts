@@ -136,6 +136,41 @@ export function buildMailto(to: string | null, subject: string, body: string): s
   return `mailto:${(to ?? "").trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+/** Text for the day-14 reminder (used by the Google Calendar link and the .ics file). */
+export function reminderText(strongClaim: number, landlordName: string | null): { title: string; details: string } {
+  const who = landlordName ?? "your landlord";
+  return {
+    title: `Follow up on deposit — ${formatMoney(strongClaim)}`,
+    details:
+      `14 days have passed since you sent your demand letter to ${who}. ` +
+      `If you haven't received ${formatMoney(strongClaim)}, send a short follow-up and consider filing in small claims court.`,
+  };
+}
+
+/**
+ * Gmail compose link (opens in the browser, signed-in Gmail account, no mail app needed).
+ * `to` may be null: Gmail opens with an empty To: field.
+ */
+export function buildGmailUrl(to: string | null, subject: string, body: string): string {
+  const q = new URLSearchParams({ view: "cm", fs: "1", to: (to ?? "").trim(), su: subject, body });
+  // URLSearchParams encodes spaces as "+", which Gmail shows literally in some fields; use %20.
+  return `https://mail.google.com/mail/?${q.toString().replace(/\+/g, "%20")}`;
+}
+
+/** Google Calendar "new event" link: all-day event 14 days from today, prefilled. Nothing is downloaded. */
+export function buildGcalUrl(p: { strongClaim: number; landlordName: string | null; today?: string }): string {
+  const start = addDays(p.today ?? todayISO(), 14);
+  const end = addDays(start, 1); // all-day events end the next day (exclusive)
+  const { title, details } = reminderText(p.strongClaim, p.landlordName);
+  const q = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${start.replace(/-/g, "")}/${end.replace(/-/g, "")}`,
+    details,
+  });
+  return `https://calendar.google.com/calendar/render?${q.toString().replace(/\+/g, "%20")}`;
+}
+
 /** Escape text for an iCalendar TEXT value. */
 function icsEscape(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
@@ -161,10 +196,7 @@ export interface IcsInput {
 
 /** All-day reminder 14 days from today (the deadline in the demand letter). */
 export function buildIcs(p: IcsInput): string {
-  const who = p.landlordName ?? "your landlord";
-  const description =
-    `14 days have passed since you sent your demand letter to ${who}. ` +
-    `If you haven't received ${formatMoney(p.strongClaim)}, send a short follow-up and consider filing in small claims court.`;
+  const { title, details: description } = reminderText(p.strongClaim, p.landlordName);
   const start = addDays(p.today ?? todayISO(), 14);
   const end = addDays(start, 1); // all-day events end the next day (exclusive)
   const ymd = (iso: string) => iso.replace(/-/g, "");
@@ -179,7 +211,7 @@ export function buildIcs(p: IcsInput): string {
     `DTSTAMP:${stamp}`,
     `DTSTART;VALUE=DATE:${ymd(start)}`,
     `DTEND;VALUE=DATE:${ymd(end)}`,
-    `SUMMARY:${icsEscape(`Follow up on deposit — ${formatMoney(p.strongClaim)}`)}`,
+    `SUMMARY:${icsEscape(title)}`,
     `DESCRIPTION:${icsEscape(description)}`,
     "END:VEVENT",
     "END:VCALENDAR",

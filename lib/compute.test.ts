@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildIcs, buildLetter, buildMailto, daysToStatement, isLate, mergeVerdicts, totals } from "./compute";
+import { buildGcalUrl, buildGmailUrl, buildIcs, buildLetter, buildMailto, daysToStatement, isLate, mergeVerdicts, totals } from "./compute";
 import type { ClerkResponse, CourtroomResponse, InspectorResponse } from "./types";
 
 const load = <T>(name: string): T => JSON.parse(readFileSync(join(__dirname, "../public/demo", name), "utf8")) as T;
@@ -56,6 +56,21 @@ assert.match(sparse, /moved out of my rental unit/);
 const ics = buildIcs({ strongClaim, landlordName: clerk.landlordName, today: "2026-11-13" });
 assert.match(ics, /DTSTART;VALUE=DATE:20261127/);
 assert.match(ics, /SUMMARY:Follow up on deposit — \$780/);
+
+// Gmail + Google Calendar links
+const gmail = new URL(buildGmailUrl(clerk.landlordEmail, "Security deposit: request for return", letter));
+assert.equal(gmail.origin + gmail.pathname, "https://mail.google.com/mail/");
+assert.equal(gmail.searchParams.get("view"), "cm");
+assert.equal(gmail.searchParams.get("to"), "deposits@bayviewpm.example.com");
+assert.equal(gmail.searchParams.get("su"), "Security deposit: request for return");
+assert.equal(gmail.searchParams.get("body"), letter, "body round-trips exactly, newlines included");
+assert.equal(new URL(buildGmailUrl(null, "S", "B")).searchParams.get("to"), "", "null email -> empty To:");
+const gcal = new URL(buildGcalUrl({ strongClaim, landlordName: clerk.landlordName, today: "2026-11-13" }));
+assert.equal(gcal.searchParams.get("action"), "TEMPLATE");
+assert.equal(gcal.searchParams.get("dates"), "20261127/20261128");
+assert.equal(gcal.searchParams.get("text"), "Follow up on deposit — $780");
+assert.match(gcal.searchParams.get("details") ?? "", /Bayview Property Management/);
+console.log("gmail link length:", gmail.href.length);
 
 console.log("✓ compute tests passed: strongClaim 780, possibleClaim 2030, daysToStatement 27, isLate true");
 console.log("\n--- letter preview ---\n" + letter);
