@@ -45,7 +45,7 @@ export default function ChargeCard({ item, meta, photos }: { item: LineItem; met
       <p className="mt-3 text-base leading-relaxed text-slate-700">{item.reason}</p>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
-        <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">{item.rule}</span>
+        <span className="max-w-full break-words rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">{item.rule}</span>
         <span>
           decided by {decider.emoji} {decider.label}
         </span>

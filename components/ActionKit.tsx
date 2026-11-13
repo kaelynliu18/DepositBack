@@ -5,7 +5,7 @@ import { buildMailto } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 
 const btn =
-  "rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:scale-[0.99]";
+  "flex min-h-12 items-center justify-center rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:scale-[0.99]";
 
 function download(name: string, text: string, type: string) {
   const url = URL.createObjectURL(new Blob([text], { type }));

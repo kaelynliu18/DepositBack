@@ -33,7 +33,7 @@ export default function Headline({ strongClaim, possibleClaim }: { strongClaim: 
   return (
     <section className="rounded-2xl bg-teal-800 p-6 text-white shadow-lg sm:p-8" aria-live="polite">
       <p className="text-lg text-teal-100">Your claim</p>
-      <p className="text-5xl font-bold tracking-tight sm:text-6xl">You can claim {formatMoney(strong)}</p>
+      <p className="text-4xl font-bold leading-tight tracking-tight sm:text-6xl">You can claim {formatMoney(strong)}</p>
       {possibleClaim > strongClaim && <p className="mt-1 text-xl text-teal-100">(up to {formatMoney(possible)})</p>}
     </section>
   );

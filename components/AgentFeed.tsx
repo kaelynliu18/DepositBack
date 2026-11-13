@@ -48,7 +48,7 @@ export default function AgentFeed({ events }: { events: AgentEvent[] }) {
   }, [events]);
 
   return (
-    <div ref={scroller} className="max-h-[70vh] overflow-y-auto pr-1 lg:max-h-[calc(100vh-10rem)]">
+    <div ref={scroller} className="max-h-[45vh] overflow-y-auto pr-1 sm:max-h-[60vh] lg:max-h-[calc(100vh-10rem)]">
       <ul className="space-y-3 pb-2">
         {events.map((e) => (
           <FeedCard key={e.id} e={e} />
