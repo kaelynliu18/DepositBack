@@ -31,7 +31,7 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
   const tips: (Tip & { when: boolean })[] = [
     {
       id: "start",
-      when: p.live && p.events.length > 0,
+      when: p.live && p.events.length > 0 && !p.view.items, // stale once charges appear
       title: "Your AI team is on it",
       body: "Nothing to do yet. The top panel shows who is working and what step you're on. I'll tell you if I need anything.",
     },
@@ -56,7 +56,7 @@ export function useTour(p: { live: boolean; events: AgentEvent[]; view: CaseView
   ];
   // The final tip jumps the queue so it is never stale; the rest show in order.
   const ready = tips.filter((t) => t.when && !seen.has(t.id));
-  const current = enabled && !p.blocked ? (ready.find((t) => t.id === "result") ?? ready[0] ?? null) : null;
+  const current = enabled && !p.blocked && !seen.has("result") ? (ready.find((t) => t.id === "result") ?? ready[0] ?? null) : null;
 
   const dismiss = useCallback(() => {
     if (current) setSeen((s) => new Set(s).add(current.id));

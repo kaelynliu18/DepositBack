@@ -1,22 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { buildMailto } from "@/lib/compute";
+import { buildGcalUrl, buildGmailUrl, followUpDate } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 import Mascot from "./Mascot";
 
 const btn = "btn-pop flex min-h-14 items-center justify-center px-5 py-3 text-center text-lg font-extrabold";
-
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function Step({ n, title, hint, children }: { n: number; title: string; hint: string; children: React.ReactNode }) {
   return (
@@ -52,8 +41,11 @@ export default function ActionKit({ result }: { result: CaseResult }) {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  // Rebuild from the (possibly edited) letter so the email matches what's on screen.
-  const mailto = letter === result.letter ? result.mailto : buildMailto(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
+  // Gmail draft built from the (possibly edited) letter, so the email matches what's on screen.
+  const gmail = buildGmailUrl(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
+  // Google Calendar "new event" page on the letter's deadline (nothing is downloaded).
+  const reminderLabel = new Date(followUpDate() + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  const gcal = buildGcalUrl({ strongClaim: result.strongClaim, landlordName: result.clerk.landlordName ?? null });
 
   return (
     <section className="pop dotgrid space-y-4 p-4 sm:p-7">
@@ -75,9 +67,9 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         />
       </Step>
 
-      <Step n={2} title="Send it" hint="Opens your email app with the letter filled in, or copy it to send your own way.">
+      <Step n={2} title="Send it" hint="Opens a Gmail draft with the letter filled in, or copy it to send your own way.">
         <div className="grid gap-3 sm:grid-cols-2">
-          <a href={mailto} className={`${btn} nudge bg-accent`}>
+          <a href={gmail} target="_blank" rel="noopener noreferrer" className={`${btn} nudge bg-accent`}>
             Email landlord
           </a>
           <button onClick={() => copy("letter", letter)} className={`${btn} bg-white`}>
@@ -86,11 +78,14 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         </div>
       </Step>
 
-      <Step n={3} title="Set a reminder" hint="Your landlord gets 14 days to answer. This puts the day on your calendar.">
+      <Step n={3} title="Set a reminder" hint="Your landlord gets time to answer. This puts the deadline on your Google Calendar.">
         <div className="grid gap-3 sm:grid-cols-2">
-          <button onClick={() => download("depositback-followup.ics", result.ics, "text/calendar")} className={`${btn} bg-white`}>
-            Add day-14 follow-up
-          </button>
+          <a href={gcal} target="_blank" rel="noopener noreferrer" className={`${btn} bg-white`}>
+            <span className="flex flex-col leading-tight">
+              <span>Add reminder</span>
+              <span className="text-sm font-medium text-muted">{reminderLabel}</span>
+            </span>
+          </a>
           {result.followUpEmail && (
             <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} bg-white`}>
               {copied === "followup" ? "Copied ✓" : "Copy follow-up email"}
