@@ -60,7 +60,8 @@ function caseFacts(items: LineItem[], tenancyMonths: number, moveOutDate: string
     (i) =>
       `- ${i.id}: "${i.description}", $${i.amount}, category ${i.category}, ${i.hasReceipt ? "receipt included" : "no receipt"}. Clerk's note: ${i.reason}`,
   );
-  return `Tenancy length: ${tenancyMonths} months. Move-out date: ${moveOutDate}.\nCharges:\n${lines.join("\n")}`;
+  const len = tenancyMonths > 0 ? `${tenancyMonths} months` : "unknown";
+  return `Tenancy length: ${len}. Move-out date: ${moveOutDate || "unknown"}.\nCharges:\n${lines.join("\n")}`;
 }
 
 export async function POST(req: Request) {

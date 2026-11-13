@@ -17,6 +17,7 @@ export const CLERK_PROMPT = withRules(`You are the Clerk on a tenant's deposit-r
 Read the landlord's itemized deduction statement in the attached image or PDF.
 - FIRST check you can clearly read the text and every dollar amount. If the image is too small, blurry, cut off or isn't a deduction statement, set unreadable=true, return an empty lineItems list, and stop. Never guess an amount.
 - Extract EVERY deduction line (skip totals, the deposit itself and refund lines). Copy amounts exactly as numbers.
+- Extract tenantName, moveOutDate (YYYY-MM-DD) and depositAmount (the security deposit held, as a number) from the statement; null if not shown.
 - Extract landlordName (the landlord or management company only, never the person who signed), landlordEmail, propertyAddress (the rental unit, not the landlord's office) and statementDate as YYYY-MM-DD. Use null for anything not shown. Never guess an email.
 - Give short ids li1, li2, … in statement order.
 - hasReceipt is true only if the statement says a receipt or invoice is attached or included.

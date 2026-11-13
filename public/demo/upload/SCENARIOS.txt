@@ -1,4 +1,5 @@
-DEMO SCENARIOS: what to type in the form for each statement, and which photos to drop in.
+DEMO SCENARIOS. Just drop the statement: name, deposit and move-out date fill in automatically
+(about 3s, "Filled in from your statement"). Months is optional. Below are the expected values + photos.
 (Photos only appear for charges the Clerk sends to the Inspector. Skip any others.)
 
 1. bayview-property-management.jpg   <- MAIN DEMO

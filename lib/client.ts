@@ -144,6 +144,29 @@ export async function inspector(req: InspectorRequest): Promise<InspectorRespons
   return post<InspectorResponse>("/api/inspector", req);
 }
 
+// ---------- form autofill ----------
+
+export interface StatementDetails {
+  tenantName: string | null;
+  moveOutDate: string | null; // YYYY-MM-DD
+  depositAmount: number | null;
+}
+
+/** Reads tenant name, move-out date and deposit off a dropped statement. Never throws (nulls on failure). */
+export async function extractDetails(statement: FileInput): Promise<StatementDetails> {
+  const empty: StatementDetails = { tenantName: null, moveOutDate: null, depositAmount: null };
+  try {
+    if (isDemo()) {
+      await sleep(1200);
+      return { tenantName: "Alex Chen", moveOutDate: "2026-10-01", depositAmount: 2400 };
+    }
+    const res = await fetch("/api/extract", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ statement }) });
+    return res.ok ? ((await res.json()) as StatementDetails) : empty;
+  } catch {
+    return empty;
+  }
+}
+
 // ---------- sample files for "Use sample" buttons ----------
 
 /** Fetch a file from /public and return it as base64 (no data: prefix). */

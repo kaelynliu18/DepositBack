@@ -136,7 +136,7 @@ export function buildLetter(p: LetterInput): string {
     "",
     `Dear ${p.clerk.landlordName ?? "Property Manager"},`,
     "",
-    `I moved out of ${address} on ${formatDate(p.moveOutDate)}. I have reviewed ${stmt} under California Civil Code §1950.5 and dispute the following deductions:`,
+    `I moved out of ${address}${p.moveOutDate ? ` on ${formatDate(p.moveOutDate)}` : ""}. I have reviewed ${stmt} under California Civil Code §1950.5 and dispute the following deductions:`,
     "",
     ...disputed.map((i) => `• ${i.description} — ${formatMoney(i.amount)}: ${letterReason(i.reason)}`),
     "",

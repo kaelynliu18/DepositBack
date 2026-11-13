@@ -6,7 +6,7 @@ export type Route = "settled" | "courtroom" | "inspector";
 export interface FileInput { mediaType: "image/jpeg" | "image/png" | "application/pdf"; data: string /* base64, no data: prefix */ }
 export interface CaseInput { statement: FileInput; depositAmount: number; moveOutDate: string /* YYYY-MM-DD */; tenancyMonths: number; tenantName: string }
 export interface LineItem { id: string; description: string; amount: number; category: "cleaning"|"repair"|"paint"|"carpet"|"rent"|"fee"|"other"; hasReceipt: boolean; verdict: Verdict; reason: string; rule: string; route: Route; decidedBy: "clerk"|"judge"|"inspector" }
-export interface ClerkResponse { landlordName: string|null; landlordEmail: string|null; propertyAddress: string|null; statementDate: string|null; lineItems: LineItem[]; otherIssues: string[] }
+export interface ClerkResponse { landlordName: string|null; landlordEmail: string|null; propertyAddress: string|null; statementDate: string|null; lineItems: LineItem[]; otherIssues: string[]; tenantName?: string|null; moveOutDate?: string|null /* YYYY-MM-DD */; depositAmount?: number|null }
 export interface Ruling { lineItemId: string; landlordArgument: string; tenantArgument: string; verdict: Verdict; reason: string; rule: string }
 export interface CourtroomResponse { rulings: Ruling[] }
 export interface InspectorResponse { lineItemId: string; sameLocation: boolean; changeObserved: string; classification: "normal_wear"|"damage"|"unclear"; verdict: Verdict; reason: string; confidence: "high"|"medium"|"low" }

@@ -18,6 +18,9 @@ const SCHEMA: ObjectSchema = {
   type: "object",
   properties: {
     unreadable: { type: "boolean", description: "true if the text or amounts can't be read clearly" },
+    tenantName: nullableString,
+    moveOutDate: { type: ["string", "null"], description: "YYYY-MM-DD" },
+    depositAmount: { type: ["number", "null"] },
     landlordName: nullableString,
     landlordEmail: nullableString,
     propertyAddress: nullableString,
@@ -43,7 +46,7 @@ const SCHEMA: ObjectSchema = {
     },
     otherIssues: { type: "array", items: { type: "string" } },
   },
-  required: ["unreadable", "landlordName", "landlordEmail", "propertyAddress", "statementDate", "lineItems", "otherIssues"],
+  required: ["unreadable", "tenantName", "moveOutDate", "depositAmount", "landlordName", "landlordEmail", "propertyAddress", "statementDate", "lineItems", "otherIssues"],
   additionalProperties: false,
 };
 
@@ -67,7 +70,12 @@ export async function POST(req: Request) {
         fileBlock(body.statement),
         {
           type: "text",
-          text: `Deposit: $${body.depositAmount}. Move-out date: ${body.moveOutDate}. Tenancy length: ${body.tenancyMonths} months.`,
+          // Anything the user left blank is read from the statement instead.
+          text: [
+            body.depositAmount > 0 ? `Deposit: $${body.depositAmount}.` : "Deposit: not provided (read it from the statement).",
+            /^\d{4}-\d{2}-\d{2}$/.test(body.moveOutDate ?? "") ? `Move-out date: ${body.moveOutDate}.` : "Move-out date: not provided (read it from the statement).",
+            body.tenancyMonths > 0 ? `Tenancy length: ${body.tenancyMonths} months.` : "Tenancy length: unknown.",
+          ].join(" "),
         },
       ],
       "report_charges",
@@ -94,6 +102,9 @@ export async function POST(req: Request) {
         decidedBy: "clerk" as const,
       })),
       otherIssues: raw.otherIssues ?? [],
+      tenantName: raw.tenantName || null,
+      moveOutDate: raw.moveOutDate && /^\d{4}-\d{2}-\d{2}$/.test(raw.moveOutDate) ? raw.moveOutDate : null,
+      depositAmount: typeof raw.depositAmount === "number" && raw.depositAmount > 0 ? raw.depositAmount : null,
     };
     return NextResponse.json(result);
   } catch (err) {

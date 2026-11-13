@@ -102,9 +102,21 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
     emit("case_manager", "error", friendly, undefined, undefined, caseId);
     throw new Error(friendly);
   }
+  // Form fields are optional: anything left blank comes from what the Clerk read on the statement.
+  const isDate = (s?: string | null) => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  const tenantName = input.tenantName?.trim() || clerk.tenantName || "Tenant";
+  const moveOutDate = isDate(input.moveOutDate) ? input.moveOutDate : clerk.moveOutDate ?? "";
+  const depositAmount = input.depositAmount > 0 ? input.depositAmount : clerk.depositAmount ?? 0;
+  const tenancyMonths = input.tenancyMonths > 0 ? input.tenancyMonths : 0; // 0 = unknown
   const who = clerk.landlordName ? `${clerk.landlordName}'s statement` : "the statement";
   // Charge cards can render right away from payload.lineItems.
   emit("clerk", "done", `Read ${who}: found ${plural(clerk.lineItems.length, "charge")}`, undefined, { lineItems: clerk.lineItems }, clerkId);
+  const readBits = [
+    clerk.tenantName && !input.tenantName?.trim() ? clerk.tenantName : null,
+    clerk.moveOutDate && !isDate(input.moveOutDate) ? `moved out ${clerk.moveOutDate}` : null,
+    clerk.depositAmount && !(input.depositAmount > 0) ? `${formatMoney(clerk.depositAmount)} deposit` : null,
+  ].filter(Boolean);
+  if (readBits.length) emit("clerk", "done", `Also read from the statement: ${readBits.join(" · ")}`);
 
   // ---- 2. Ask the user for photos (one item at a time; not counted against the budget) ----
   const toInspector = clerk.lineItems.filter((i) => i.route === "inspector");
@@ -152,7 +164,7 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
     let judgeStarted = false;
     try {
       const res = await twice(() =>
-        api.courtroom({ items: docket, tenancyMonths: input.tenancyMonths, moveOutDate: input.moveOutDate }, (u) => {
+        api.courtroom({ items: docket, tenancyMonths: tenancyMonths, moveOutDate: moveOutDate }, (u) => {
           // Live courtroom: one event per argument / ruling, the moment it arrives.
           if (u.type === "argument") {
             if (u.side === "landlord") {
@@ -196,7 +208,7 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
           const r = await twice(() =>
             api.inspector({
               lineItem: { id: item.id, description: item.description, amount: item.amount },
-              tenancyMonths: input.tenancyMonths,
+              tenancyMonths: tenancyMonths,
               moveIn: pair.moveIn,
               moveOut: pair.moveOut,
             }),
@@ -223,11 +235,11 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
   // ---- 5. Merge + compute (pure code) ----
   const items = mergeVerdicts(clerk.lineItems, rulings, photos);
   const { strongClaim, possibleClaim } = totals(items);
-  const days = daysToStatement(input.moveOutDate, clerk.statementDate ?? null);
+  const days = daysToStatement(moveOutDate, clerk.statementDate ?? null);
   const late = isLate(days);
 
   const paraId = emit("paralegal", "working", "Drafting the demand letter, email and reminder…");
-  const letter = buildLetter({ clerk, items, moveOutDate: input.moveOutDate, tenantName: input.tenantName, strongClaim, days, late, depositAmount: input.depositAmount });
+  const letter = buildLetter({ clerk, items, moveOutDate: moveOutDate, tenantName: tenantName, strongClaim, days, late, depositAmount });
   const mailto = buildMailto(clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
   const ics = buildIcs({ strongClaim, landlordName: clerk.landlordName ?? null });
   emit("paralegal", "done", "Letter drafted", undefined, undefined, paraId);

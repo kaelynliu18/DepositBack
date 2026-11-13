@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFileInput } from "@/hooks/useFileInput";
+import { extractDetails } from "@/lib/client";
 import type { CaseInput } from "@/lib/types";
 import Bubble from "./Bubble";
 import DropZone from "./DropZone";
@@ -23,6 +24,26 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
   const [moveOut, setMoveOut] = useState("");
   const [months, setMonths] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  // Autofill: when a statement is dropped, read name / deposit / move-out date off it.
+  // Only fills fields that are still empty, so it never overwrites what the user typed.
+  const [fill, setFill] = useState<{ forData: string; ok: boolean } | null>(null);
+  const pickedData = stmt.picked?.file.data;
+  useEffect(() => {
+    if (!stmt.picked || !pickedData) return;
+    let stale = false;
+    extractDetails(stmt.picked.file).then((d) => {
+      if (stale) return;
+      if (d.tenantName) setName((v) => v || d.tenantName!);
+      if (d.depositAmount) setDeposit((v) => v || String(d.depositAmount));
+      if (d.moveOutDate) setMoveOut((v) => v || d.moveOutDate!);
+      setFill({ forData: pickedData, ok: !!(d.tenantName || d.depositAmount || d.moveOutDate) });
+    });
+    return () => {
+      stale = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedData]);
+  const autofill = !pickedData ? "idle" : fill?.forData !== pickedData ? "reading" : fill.ok ? "done" : "none";
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,6 +107,9 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
             onClear={stmt.clear}
           />
           {stmt.error && <p className="font-medium text-warn">{stmt.error}</p>}
+          {autofill === "reading" && <p className="text-base font-medium text-muted">Reading your statement…</p>}
+          {autofill === "done" && <p className="text-base font-bold">✓ Filled in from your statement. Check it&apos;s right.</p>}
+          {autofill === "none" && <p className="text-base font-medium text-muted">Couldn&apos;t read your details. Please fill them in.</p>}
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
@@ -99,7 +123,7 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
           </label>
           <label className="space-y-1">
             <span className="text-base font-bold">Months lived there</span>
-            <input required type="number" min="0" inputMode="numeric" className={inputCls} value={months} onChange={(e) => setMonths(e.target.value)} />
+            <input type="number" min="0" inputMode="numeric" placeholder="Optional" className={inputCls} value={months} onChange={(e) => setMonths(e.target.value)} />
           </label>
           <label className="space-y-1 sm:col-span-2">
             <span className="text-base font-bold">Move-out date</span>

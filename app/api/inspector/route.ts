@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       [
         {
           type: "text",
-          text: `Charge: "${body.lineItem.description}" for $${body.lineItem.amount}. Tenancy length: ${body.tenancyMonths} months.`,
+          text: `Charge: "${body.lineItem.description}" for $${body.lineItem.amount}. Tenancy length: ${body.tenancyMonths > 0 ? `${body.tenancyMonths} months` : "unknown"}.`,
         },
         { type: "text", text: "MOVE-IN photo:" },
         fileBlock(body.moveIn),
