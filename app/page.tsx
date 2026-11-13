@@ -10,6 +10,7 @@ import ErrorCard from "@/components/ErrorCard";
 import Courtroom from "@/components/Courtroom";
 import Headline from "@/components/Headline";
 import IntakeForm from "@/components/IntakeForm";
+import SmallClaims from "@/components/SmallClaims";
 import PhotoRequest from "@/components/PhotoRequest";
 import { useCaseState } from "@/hooks/useCaseState";
 import { runCase } from "@/lib/caseManager";
@@ -28,6 +29,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<PendingPhotos | null>(null);
   const [photos, setPhotos] = useState<Record<string, ChargePhotos>>({});
+  const [tenantName, setTenantName] = useState("");
   const runId = useRef(0);
   const pendingRef = useRef<PendingPhotos | null>(null);
   const { items: liveItems, meta } = useCaseState(events);
@@ -67,6 +69,7 @@ export default function Home() {
     setResult(null);
     setError(null);
     setPhotos({});
+    setTenantName(input.tenantName);
     setPhase("live");
     try {
       const r = await runCase(input, { onEvent, onNeedPhotos: askForPhotos });
@@ -131,6 +134,7 @@ export default function Home() {
           <Courtroom events={events} items={items} />
           {cards}
           <ActionKit result={result} />
+          <SmallClaims result={result} tenantName={tenantName} />
           <details className="rounded-2xl border border-slate-200 p-4">
             <summary className="cursor-pointer text-lg font-medium text-slate-700">See how the agents worked</summary>
             <div className="mt-4">
