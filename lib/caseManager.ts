@@ -227,7 +227,7 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
   const late = isLate(days);
 
   const paraId = emit("paralegal", "working", "Drafting the demand letter, email and reminder…");
-  const letter = buildLetter({ clerk, items, moveOutDate: input.moveOutDate, tenantName: input.tenantName, strongClaim, days, late });
+  const letter = buildLetter({ clerk, items, moveOutDate: input.moveOutDate, tenantName: input.tenantName, strongClaim, days, late, depositAmount: input.depositAmount });
   const mailto = buildMailto(clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
   const ics = buildIcs({ strongClaim, landlordName: clerk.landlordName ?? null });
   emit("paralegal", "done", "Letter drafted", undefined, undefined, paraId);

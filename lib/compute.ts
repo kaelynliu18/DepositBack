@@ -95,7 +95,26 @@ export interface LetterInput {
   strongClaim: number;
   days: number | null;
   late: boolean;
+  depositAmount?: number; // enables the "you say I owe more than my deposit" wording
   today?: string; // YYYY-MM-DD, defaults to today
+}
+
+/**
+ * What the tenant should actually ask for, given the deposit.
+ * - refundDue: extra money the landlord must send back if the strong-claim charges are removed.
+ * - claimedBalance: what the landlord says the tenant owes beyond the deposit (0 if none).
+ * - correctedBalance: that balance once the strong-claim charges are removed.
+ * Bayview: deposit 2400, deductions 2115, strong 780 -> refundDue 780, no balance.
+ * Tenant owes: deposit 2000, deductions 2285, strong 150 -> refundDue 0, balance 285 -> 135.
+ */
+export function demandAmounts(items: LineItem[], strongClaim: number, depositAmount: number) {
+  const total = roundCents(items.reduce((acc, i) => acc + (Number(i.amount) || 0), 0));
+  const alreadyRefunded = Math.max(0, depositAmount - total);
+  const fairDeductions = total - strongClaim;
+  const refundDue = roundCents(Math.max(0, depositAmount - fairDeductions) - alreadyRefunded);
+  const claimedBalance = roundCents(Math.max(0, total - depositAmount));
+  const correctedBalance = roundCents(Math.max(0, fairDeductions - depositAmount));
+  return { refundDue, claimedBalance, correctedBalance };
 }
 
 /**
@@ -125,8 +144,24 @@ export function buildLetter(p: LetterInput): string {
   if (p.late && p.days !== null) {
     lines.push(`Your statement was sent ${p.days} days after I moved out, past the 21-day deadline in §1950.5(g).`, "");
   }
+  // Normal case: ask for the strong claim back. If the landlord says the tenant owes MORE than
+  // the deposit, removing bad charges may only shrink that bill, so say that instead.
+  const d = p.depositAmount && p.depositAmount > 0 ? demandAmounts(p.items, p.strongClaim, p.depositAmount) : null;
+  if (d && d.claimedBalance > 0) {
+    lines.push(
+      `Your statement keeps my full ${formatMoney(p.depositAmount!)} deposit and says I owe ${formatMoney(d.claimedBalance)} more. ` +
+        (d.correctedBalance > 0
+          ? `Without the charges disputed above, that balance should be no more than ${formatMoney(d.correctedBalance)}, and I will not pay the disputed amounts.`
+          : `Without the charges disputed above, I owe nothing more.`),
+      "",
+    );
+  }
+  const ask =
+    d && d.refundDue <= 0
+      ? `Please send me a corrected itemized statement within ${FOLLOW_UP_DAYS} days of this letter.`
+      : `Please return ${formatMoney(d ? d.refundDue : p.strongClaim)} within ${FOLLOW_UP_DAYS} days of this letter.`;
   lines.push(
-    `Please return ${formatMoney(p.strongClaim)} within ${FOLLOW_UP_DAYS} days of this letter. If we cannot resolve this, I am prepared to file in small claims court, where a court may award up to twice the deposit for bad-faith retention.`,
+    `${ask} If we cannot resolve this, I am prepared to file in small claims court, where a court may award up to twice the deposit for bad-faith retention.`,
     "",
     "Sincerely,",
     p.tenantName,

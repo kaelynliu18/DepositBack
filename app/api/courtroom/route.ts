@@ -71,7 +71,15 @@ export async function POST(req: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (e: CourtroomStreamEvent) => controller.enqueue(new TextEncoder().encode(JSON.stringify(e) + "\n"));
+      let closed = false;
+      const send = (e: CourtroomStreamEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(new TextEncoder().encode(JSON.stringify(e) + "\n"));
+        } catch {
+          closed = true; // browser went away (e.g. "Start over"); stop writing
+        }
+      };
       const serveFixture = () => {
         const rulings = (fixture.rulings as Ruling[]).filter((r) => ids.has(r.lineItemId));
         for (const r of rulings) {
@@ -161,8 +169,17 @@ export async function POST(req: Request) {
         console.error("[courtroom] unexpected error:", err);
         send({ type: "error", message: "The courtroom hit an error." });
       } finally {
-        controller.close();
+        if (!closed) {
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        }
       }
+    },
+    cancel() {
+      console.log("[courtroom] client disconnected");
     },
   });
 

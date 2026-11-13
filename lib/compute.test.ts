@@ -72,5 +72,20 @@ assert.equal(gcal.searchParams.get("text"), "Follow up on deposit — $780");
 assert.match(gcal.searchParams.get("details") ?? "", /Bayview Property Management/);
 console.log("gmail link length:", gmail.href.length);
 
+// Deposit-aware demand
+const bay = buildLetter({ clerk, items, moveOutDate: "2026-10-01", tenantName: "Alex Chen", strongClaim, days, late: true, depositAmount: 2400, today: "2026-11-13" });
+assert.match(bay, /Please return \$780 within 14 days/, "Bayview: unchanged ask");
+assert.doesNotMatch(bay, /says I owe/);
+const owes = [
+  { ...items[0], amount: 1100, verdict: "allowed" as const }, { ...items[1], amount: 240, verdict: "questionable" as const },
+  { ...items[2], amount: 310, verdict: "questionable" as const }, { ...items[3], amount: 420, verdict: "questionable" as const },
+  { ...items[4], amount: 65, verdict: "questionable" as const }, { ...items[4], id: "li6", description: "Admin fee", amount: 150, verdict: "not_allowed" as const },
+];
+const owesLetter = buildLetter({ clerk, items: owes, moveOutDate: "2026-10-20", tenantName: "Priya Patel", strongClaim: 150, days: 14, late: false, depositAmount: 2000 });
+assert.match(owesLetter, /keeps my full \$2,000 deposit and says I owe \$285 more/);
+assert.match(owesLetter, /no more than \$135/);
+assert.match(owesLetter, /Please send me a corrected itemized statement within 14 days/);
+assert.doesNotMatch(owesLetter, /Please return/);
+
 console.log("✓ compute tests passed: strongClaim 780, possibleClaim 2030, daysToStatement 27, isLate true");
 console.log("\n--- letter preview ---\n" + letter);
