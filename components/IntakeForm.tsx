@@ -125,7 +125,7 @@ export default function IntakeForm({ onSubmit }: { onSubmit: (input: CaseInput) 
             onClear={stmt.clear}
           />
           {stmt.error && <p className="font-medium text-warn">{stmt.error}</p>}
-          {autofill === "reading" && <p className="text-base font-medium text-muted">Reading your statement…</p>}
+          {autofill === "reading" && <p className="text-base font-medium text-muted">Autofilling based on your statement…</p>}
           {autofill === "done" && (
             <p className="text-base font-bold">
               ✓ Filled in from your statement.{" "}
