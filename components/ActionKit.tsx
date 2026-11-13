@@ -1,22 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { buildMailto } from "@/lib/compute";
+import { buildGcalUrl, buildGmailUrl } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 
 const btn =
   "flex min-h-12 items-center justify-center rounded-xl px-5 py-3 text-center text-lg font-semibold transition active:scale-[0.99]";
-
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 export default function ActionKit({ result }: { result: CaseResult }) {
   const [letter, setLetter] = useState(result.letter);
@@ -37,8 +26,10 @@ export default function ActionKit({ result }: { result: CaseResult }) {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  // Rebuild from the (possibly edited) letter so the email matches what's on screen.
-  const mailto = letter === result.letter ? result.mailto : buildMailto(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
+  // Gmail draft built from the (possibly edited) letter, so the email matches what's on screen.
+  const gmail = buildGmailUrl(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
+  // Google Calendar "new event" page for day 14 (nothing is downloaded).
+  const gcal = buildGcalUrl({ strongClaim: result.strongClaim, landlordName: result.clerk.landlordName ?? null });
 
   return (
     <section className="space-y-4 rounded-2xl border border-teal-200 bg-teal-50/50 p-5 shadow-sm sm:p-6">
@@ -54,12 +45,12 @@ export default function ActionKit({ result }: { result: CaseResult }) {
         <button onClick={() => copy("letter", letter)} className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
           {copied === "letter" ? "Copied ✓" : "Copy letter"}
         </button>
-        <a href={mailto} className={`${btn} bg-teal-800 text-white hover:bg-teal-900`}>
+        <a href={gmail} target="_blank" rel="noopener noreferrer" className={`${btn} bg-teal-800 text-white hover:bg-teal-900`}>
           Email landlord
         </a>
-        <button onClick={() => download("depositback-followup.ics", result.ics, "text/calendar")} className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
+        <a href={gcal} target="_blank" rel="noopener noreferrer" className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
           Add day-14 follow-up
-        </button>
+        </a>
       </div>
       {result.followUpEmail && (
         <button onClick={() => copy("followup", result.followUpEmail)} className={`${btn} w-full border border-slate-300 text-slate-700 hover:bg-white`}>
