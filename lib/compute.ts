@@ -3,6 +3,9 @@
 
 import type { ClerkResponse, InspectorResponse, LineItem, Ruling } from "./types";
 
+/** Days the landlord gets to pay after the demand letter. The letter, reminder and button all use this. */
+export const FOLLOW_UP_DAYS = 14;
+
 // ---------- helpers ----------
 
 /** $1,234 (adds cents only when there are any: $1,234.50) */
@@ -123,7 +126,7 @@ export function buildLetter(p: LetterInput): string {
     lines.push(`Your statement was sent ${p.days} days after I moved out, past the 21-day deadline in §1950.5(g).`, "");
   }
   lines.push(
-    `Please return ${formatMoney(p.strongClaim)} within 14 days of this letter. If we cannot resolve this, I am prepared to file in small claims court, where a court may award up to twice the deposit for bad-faith retention.`,
+    `Please return ${formatMoney(p.strongClaim)} within ${FOLLOW_UP_DAYS} days of this letter. If we cannot resolve this, I am prepared to file in small claims court, where a court may award up to twice the deposit for bad-faith retention.`,
     "",
     "Sincerely,",
     p.tenantName,
@@ -136,13 +139,13 @@ export function buildMailto(to: string | null, subject: string, body: string): s
   return `mailto:${(to ?? "").trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/** Text for the day-14 reminder (used by the Google Calendar link and the .ics file). */
+/** Text for the follow-up reminder (used by the Google Calendar link and the .ics file). */
 export function reminderText(strongClaim: number, landlordName: string | null): { title: string; details: string } {
   const who = landlordName ?? "your landlord";
   return {
     title: `Follow up on deposit — ${formatMoney(strongClaim)}`,
     details:
-      `14 days have passed since you sent your demand letter to ${who}. ` +
+      `${FOLLOW_UP_DAYS} days have passed since you sent your demand letter to ${who}. ` +
       `If you haven't received ${formatMoney(strongClaim)}, send a short follow-up and consider filing in small claims court.`,
   };
 }
@@ -157,9 +160,14 @@ export function buildGmailUrl(to: string | null, subject: string, body: string):
   return `https://mail.google.com/mail/?${q.toString().replace(/\+/g, "%20")}`;
 }
 
-/** Google Calendar "new event" link: all-day event 14 days from today, prefilled. Nothing is downloaded. */
+/** Date of the follow-up reminder (YYYY-MM-DD): FOLLOW_UP_DAYS after today. */
+export function followUpDate(today?: string): string {
+  return addDays(today ?? todayISO(), FOLLOW_UP_DAYS);
+}
+
+/** Google Calendar "new event" link: all-day event on followUpDate(), prefilled. Nothing is downloaded. */
 export function buildGcalUrl(p: { strongClaim: number; landlordName: string | null; today?: string }): string {
-  const start = addDays(p.today ?? todayISO(), 14);
+  const start = followUpDate(p.today);
   const end = addDays(start, 1); // all-day events end the next day (exclusive)
   const { title, details } = reminderText(p.strongClaim, p.landlordName);
   const q = new URLSearchParams({
@@ -194,10 +202,10 @@ export interface IcsInput {
   today?: string; // YYYY-MM-DD, defaults to today
 }
 
-/** All-day reminder 14 days from today (the deadline in the demand letter). */
+/** All-day reminder on followUpDate() (the deadline in the demand letter). */
 export function buildIcs(p: IcsInput): string {
   const { title, details: description } = reminderText(p.strongClaim, p.landlordName);
-  const start = addDays(p.today ?? todayISO(), 14);
+  const start = followUpDate(p.today);
   const end = addDays(start, 1); // all-day events end the next day (exclusive)
   const ymd = (iso: string) => iso.replace(/-/g, "");
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");

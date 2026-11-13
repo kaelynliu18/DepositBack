@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { buildGcalUrl, buildGmailUrl } from "@/lib/compute";
+import { buildGcalUrl, buildGmailUrl, followUpDate } from "@/lib/compute";
 import type { CaseResult } from "@/lib/types";
 
 const btn =
@@ -28,7 +28,8 @@ export default function ActionKit({ result }: { result: CaseResult }) {
 
   // Gmail draft built from the (possibly edited) letter, so the email matches what's on screen.
   const gmail = buildGmailUrl(result.clerk.landlordEmail ?? null, "Security deposit: request for return", letter);
-  // Google Calendar "new event" page for day 14 (nothing is downloaded).
+  // Google Calendar "new event" page on the letter's deadline (nothing is downloaded).
+  const reminderLabel = new Date(followUpDate() + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   const gcal = buildGcalUrl({ strongClaim: result.strongClaim, landlordName: result.clerk.landlordName ?? null });
 
   return (
@@ -49,7 +50,10 @@ export default function ActionKit({ result }: { result: CaseResult }) {
           Email landlord
         </a>
         <a href={gcal} target="_blank" rel="noopener noreferrer" className={`${btn} border border-teal-800 text-teal-900 hover:bg-white`}>
-          Add day-14 follow-up
+          <span className="flex flex-col leading-tight">
+            <span>Add reminder</span>
+            <span className="text-sm font-normal opacity-75">{reminderLabel}</span>
+          </span>
         </a>
       </div>
       {result.followUpEmail && (
