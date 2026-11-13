@@ -2,18 +2,18 @@
   "rulings": [
     {
       "lineItemId": "li4",
-      "landlordArgument": "The carpet was replaced and there's a receipt, so the cost is documented.",
-      "tenantArgument": "Carpet wears out over time, and charging full price for an 8-year-old carpet makes the tenant pay for something that was already near the end of its life.",
+      "landlordArgument": "The landlord has an invoice for the $900, so the paperwork rule for charges over $125 is met. If the carpet was damaged beyond normal wear, the landlord can fairly charge for it, but the amount should reflect the carpet's age, and the landlord should be ready to show photos of the damage.",
+      "tenantArgument": "The landlord is charging the full $900 for carpet that was already 8 years old, and old carpet has lost most of its value, so the tenant should only owe a smaller prorated share, if anything. Nothing here shows the tenant caused damage beyond normal wear, and no photos are listed to back it up.",
       "verdict": "questionable",
-      "reason": "The tenant wins on the amount: even if some charge is fair, the full price for an 8-year-old carpet should have been prorated.",
-      "rule": "Rule 6"
+      "reason": "Neither side wins outright: the landlord has an invoice, but charging full price for 8-year-old carpet isn't fair and no photos or proof of tenant damage are shown, so only a smaller prorated amount might be allowed.",
+      "rule": "Rule 6 / Rule 5"
     },
     {
       "lineItemId": "li2",
-      "landlordArgument": "If the tenant left marks that needed covering, repainting could be repair of damage.",
-      "tenantArgument": "Repainting an entire unit is routine work between tenants, and there's no receipt for a $600 charge.",
+      "landlordArgument": "The landlord can only win this if the paint was actually damaged by the tenant beyond normal wear, such as marks or stains that go past scuffs. The charge details don't say that, and there's no receipt for a charge over $125. So this is a weak charge, and the landlord would need to supply an invoice or estimate and photos of the damage.",
+      "tenantArgument": "Repainting the whole unit between tenants is routine upkeep, not damage the tenant caused, so it can't be charged to the tenant. It's also $600 with no receipt, and charges over $125 need paperwork.",
       "verdict": "not_allowed",
-      "reason": "The tenant wins: whole-unit repainting is routine upkeep, and a charge over $125 with no receipt can't stand.",
+      "reason": "The tenant wins: repainting the whole unit between tenants is routine upkeep, not tenant damage, and there's no receipt for a $600 charge.",
       "rule": "Rule 3 / Rule 4"
     }
   ]

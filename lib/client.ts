@@ -150,6 +150,29 @@ async function loadFile(url: string, mediaType: FileInput["mediaType"]): Promise
   return { mediaType, data: btoa(binary) };
 }
 
+/**
+ * Turn a user's uploaded File (from <input type="file">) into a FileInput.
+ * Images are shrunk to at most 1600px on the long side and re-encoded as JPEG:
+ * phone photos are often >5MB, which Claude rejects, and smaller = faster + cheaper.
+ * PDFs pass through unchanged.
+ */
+export async function fileToInput(file: File): Promise<FileInput> {
+  if (file.type === "application/pdf") {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return { mediaType: "application/pdf", data: btoa(binary) };
+  }
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  return { mediaType: "image/jpeg", data: dataUrl.slice(dataUrl.indexOf(",") + 1) };
+}
+
 export async function loadSampleStatement(): Promise<FileInput> {
   return loadFile("/demo/statement.jpg", "image/jpeg");
 }

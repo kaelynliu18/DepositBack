@@ -1,9 +1,9 @@
 {
-  "lineItemId": "li3",
   "sameLocation": true,
-  "changeObserved": "A few light gray scuffs near the light switch at move-out; no hole or broken drywall is visible.",
+  "changeObserved": "A few light scuff marks and thin scratches appeared on the wall near the light switch, with no visible holes or gouges.",
   "classification": "normal_wear",
   "verdict": "not_allowed",
-  "reason": "The photos show light scuffs, not a hole, and scuffs after 11 months of living there are normal wear.",
-  "confidence": "high"
+  "reason": "The charge is for a wall hole, but the photo only shows light scuffs and scratches, which count as normal wear after 11 months (Rule 3).",
+  "confidence": "medium",
+  "lineItemId": "li3"
 }

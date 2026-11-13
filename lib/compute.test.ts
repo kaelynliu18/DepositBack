@@ -36,7 +36,7 @@ const letter = buildLetter({ clerk, items, moveOutDate: "2026-10-01", tenantName
 assert.match(letter, /Dear Bayview Property Management,/);
 assert.match(letter, /Please return \$780 within 14 days/);
 assert.match(letter, /27 days after I moved out/);
-assert.match(letter, /Carpet replacement \(8-year-old carpet\) — \$900:/);
+assert.match(letter, /Carpet replacement.* — \$900:/);
 assert.doesNotMatch(letter, /Broken window blinds/, "allowed items are not disputed");
 
 const onTime = buildLetter({ clerk, items, moveOutDate: "2026-10-01", tenantName: "Alex Chen", strongClaim, days: 10, late: false });

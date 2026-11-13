@@ -6,13 +6,13 @@
   "lineItems": [
     {
       "id": "li1",
-      "description": "General cleaning",
+      "description": "General cleaning (invoice attached)",
       "amount": 350,
       "category": "cleaning",
       "hasReceipt": true,
       "verdict": "questionable",
-      "reason": "Cleaning is only allowed back to move-in condition, and the statement doesn't show the unit was dirtier than when you moved in.",
-      "rule": "Rule 2 / Rule 3",
+      "reason": "There's an invoice, but the statement doesn't show the unit was dirtier than at move-in, so some of this may be extra cleaning.",
+      "rule": "Rule 2 / Rule 3 / Rule 4",
       "route": "courtroom",
       "decidedBy": "clerk"
     },
@@ -23,8 +23,8 @@
       "category": "paint",
       "hasReceipt": false,
       "verdict": "not_allowed",
-      "reason": "Repainting a whole unit between tenants is routine upkeep, and there's no receipt for a charge over $125.",
-      "rule": "Rule 3 / Rule 4",
+      "reason": "Repainting the whole unit between tenants is routine upkeep, not tenant damage, and there's no receipt for a charge over $125.",
+      "rule": "Rule 3 / Rule 4 / Rule 6",
       "route": "courtroom",
       "decidedBy": "clerk"
     },
@@ -35,20 +35,20 @@
       "category": "repair",
       "hasReceipt": false,
       "verdict": "questionable",
-      "reason": "A real hole could be damage, but small marks are normal wear, so photos would settle it.",
-      "rule": "Rule 2 / Rule 3",
+      "reason": "A big hole could be real damage but small nail holes are normal wear, and there's no receipt or photos for a charge over $125.",
+      "rule": "Rule 3 / Rule 4 / Rule 5",
       "route": "inspector",
       "decidedBy": "clerk"
     },
     {
       "id": "li4",
-      "description": "Carpet replacement (8-year-old carpet)",
+      "description": "Carpet replacement, 8-year-old carpet (invoice attached)",
       "amount": 900,
       "category": "carpet",
       "hasReceipt": true,
       "verdict": "questionable",
-      "reason": "An 8-year-old carpet is near the end of its life, so charging full replacement instead of a prorated share is questionable.",
-      "rule": "Rule 6",
+      "reason": "Charging full price for an 8-year-old carpet isn't fair because old carpet has lost most of its value, so a smaller prorated amount might apply.",
+      "rule": "Rule 3 / Rule 6",
       "route": "courtroom",
       "decidedBy": "clerk"
     },
@@ -59,14 +59,15 @@
       "category": "repair",
       "hasReceipt": false,
       "verdict": "allowed",
-      "reason": "Broken blinds are damage, not normal wear, and charges under $125 don't need a receipt.",
+      "reason": "Broken blinds are clearly damage, not wear, and charges of $125 or less don't need a receipt.",
       "rule": "Rule 2 / Rule 4",
       "route": "settled",
       "decidedBy": "clerk"
     }
   ],
   "otherIssues": [
-    "The statement is dated 27 days after move-out, past the 21-day deadline.",
-    "No move-out or after-repair photos were included with the statement."
+    "The statement is dated October 28, 2026, which is 27 days after the October 1 move-out, past the 21-day deadline.",
+    "No before/after photos of the unit are mentioned, and since the tenancy began after July 1, 2025, move-in photos are also required.",
+    "The repainting and wall hole charges are over $125 and have no receipts or invoices."
   ]
 }
