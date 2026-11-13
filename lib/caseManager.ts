@@ -10,7 +10,7 @@
 //  - 60s budget of agent time (time spent waiting for the user's photos doesn't count).
 
 import * as api from "./client";
-import { buildIcs, buildLetter, buildMailto, daysToStatement, formatMoney, isLate, mergeVerdicts, totals } from "./compute";
+import { stripRuleLabels, buildIcs, buildLetter, buildMailto, daysToStatement, formatMoney, isLate, mergeVerdicts, totals } from "./compute";
 import type {
   AgentEvent,
   AgentEventPayload,
@@ -168,10 +168,10 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
           // Live courtroom: one event per argument / ruling, the moment it arrives.
           if (u.type === "argument") {
             if (u.side === "landlord") {
-              emit("landlord_advocate", "done", `On "${desc(u.lineItemId)}": ${u.argument}`, u.lineItemId, { landlordArgument: u.argument }, landlordSlot);
+              emit("landlord_advocate", "done", `On "${desc(u.lineItemId)}": ${stripRuleLabels(u.argument)}`, u.lineItemId, { landlordArgument: u.argument }, landlordSlot);
               landlordSlot = undefined;
             } else {
-              emit("tenant_advocate", "done", `On "${desc(u.lineItemId)}": ${u.argument}`, u.lineItemId, { tenantArgument: u.argument }, tenantSlot);
+              emit("tenant_advocate", "done", `On "${desc(u.lineItemId)}": ${stripRuleLabels(u.argument)}`, u.lineItemId, { tenantArgument: u.argument }, tenantSlot);
               tenantSlot = undefined;
             }
           } else if (u.type === "ruling") {
@@ -181,7 +181,7 @@ export async function runCase(input: CaseInput, hooks: CaseHooks): Promise<CaseR
             }
             const v = { allowed: "allowed", questionable: "questionable", not_allowed: "not allowed" }[u.ruling.verdict];
             // Always announce, even if unchanged, so the UI can show "confirmed by Judge".
-            emit("judge", "done", `"${desc(u.ruling.lineItemId)}" is ${v}. ${u.ruling.reason}`, u.ruling.lineItemId, {
+            emit("judge", "done", `"${desc(u.ruling.lineItemId)}" is ${v}. ${stripRuleLabels(u.ruling.reason)}`, u.ruling.lineItemId, {
               ruling: u.ruling,
               previousVerdict: clerkVerdict(u.ruling.lineItemId),
               newVerdict: u.ruling.verdict,

@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/compute";
+import { formatMoney, lawLabel, stripRuleLabels } from "@/lib/compute";
 import type { LineItem, Verdict } from "@/lib/types";
 import type { ChargeMeta } from "@/hooks/useCaseState";
 import { AGENTS } from "./agents";
@@ -39,10 +39,10 @@ export default function ChargeCard({ item, meta, photos }: { item: LineItem; met
           {o && !changed && <span className="rounded-full border-2 border-ink bg-sun px-2.5 py-0.5 text-sm font-bold">✓ confirmed by {byLabel}</span>}
         </div>
 
-        <p className="mt-3 text-base leading-relaxed text-muted">{item.reason}</p>
+        <p className="mt-3 text-base leading-relaxed text-muted">{stripRuleLabels(item.reason)}</p>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t-2 border-dashed border-soft pt-3 text-sm">
-          <span className="max-w-full break-words font-mono text-xs text-muted">{item.rule}</span>
+          <span className="max-w-full break-words font-mono text-xs text-muted">{lawLabel(item.rule)}</span>
           <span className="flex items-center gap-1.5 font-bold">
             <Mascot agent={item.decidedBy} size={26} />
             {decider.label}

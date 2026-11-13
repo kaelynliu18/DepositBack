@@ -155,7 +155,18 @@ export function citationFor(rule: string): string {
  * - strips internal labels like "(Rule 3)", "Rule 3 / Rule 4", "(Rules 3 and 4)"
  */
 export function letterReason(reason: string): string {
-  let s = reason.replace(/^\s*(the (tenant|landlord)('s argument)? wins[^:]*|neither side wins[^:]*):\s*/i, "");
+  const s = stripRuleLabels(reason.replace(/^\s*(the (tenant|landlord)('s argument)? wins[^:]*|neither side wins[^:]*):\s*/i, ""));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** For the UI tag: "Cal. Civ. Code §1950.5 · ordinary wear and tear · receipts required over $125". */
+export function lawLabel(rule: string): string {
+  return citationFor(rule).replace(/^\(|\)$/g, "").replace(": ", " · ").replace(/; /g, " · ");
+}
+
+/** Removes internal "Rule N" labels from any reason text (keeps everything else, e.g. "The tenant wins:"). */
+export function stripRuleLabels(reason: string): string {
+  let s = reason ?? "";
   const label = String.raw`Rules?\s*\d+(?:\s*(?:\/|,|and|&|or)\s*(?:Rules?\s*)?\d+)*`;
   s = s.replace(new RegExp(String.raw`\s*\(\s*(?:under|per|see)?\s*${label}\s*\)`, "gi"), ""); // "(Rule 3)"
   s = s.replace(new RegExp(String.raw`\s*(?:,\s*)?(?:under|per|see)\s+${label}`, "gi"), ""); // "under Rule 3"

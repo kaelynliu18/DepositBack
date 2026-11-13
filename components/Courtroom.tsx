@@ -1,3 +1,4 @@
+import { stripRuleLabels } from "@/lib/compute";
 import type { AgentEvent, LineItem, Verdict } from "@/lib/types";
 import Bubble from "./Bubble";
 import Mascot from "./Mascot";
@@ -24,8 +25,8 @@ function deriveCases(events: AgentEvent[]): Case[] {
     const p = e.payload;
     if (!e.lineItemId || !p || (!p.landlordArgument && !p.tenantArgument && !p.ruling)) continue;
     const c = byId.get(e.lineItemId) ?? { id: e.lineItemId };
-    if (p.landlordArgument) c.landlord = p.landlordArgument;
-    if (p.tenantArgument) c.tenant = p.tenantArgument;
+    if (p.landlordArgument) c.landlord = stripRuleLabels(p.landlordArgument);
+    if (p.tenantArgument) c.tenant = stripRuleLabels(p.tenantArgument);
     if (p.ruling) c.ruling = p.ruling;
     byId.set(e.lineItemId, c);
   }
@@ -73,7 +74,7 @@ export default function Courtroom({ events, items }: { events: AgentEvent[]; ite
                 <Mascot agent="judge" mood="done" size={52} className="shrink-0" />
                 <div>
                   <p className="text-lg font-black">Judge: {LABEL[c.ruling.verdict]}</p>
-                  <p className="mt-1 text-base">{c.ruling.reason}</p>
+                  <p className="mt-1 text-base">{stripRuleLabels(c.ruling.reason)}</p>
                 </div>
               </div>
             )}
