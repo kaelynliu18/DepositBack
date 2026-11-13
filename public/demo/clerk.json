@@ -1,0 +1,72 @@
+{
+  "landlordName": "Bayview Property Management",
+  "landlordEmail": "deposits@bayviewpm.example.com",
+  "propertyAddress": "2417 Durant Ave, Apt 3B, Berkeley, CA 94704",
+  "statementDate": "2026-10-28",
+  "lineItems": [
+    {
+      "id": "li1",
+      "description": "General cleaning",
+      "amount": 350,
+      "category": "cleaning",
+      "hasReceipt": true,
+      "verdict": "questionable",
+      "reason": "Cleaning is only allowed back to move-in condition, and the statement doesn't show the unit was dirtier than when you moved in.",
+      "rule": "Rule 2 / Rule 3",
+      "route": "courtroom",
+      "decidedBy": "clerk"
+    },
+    {
+      "id": "li2",
+      "description": "Repaint entire unit",
+      "amount": 600,
+      "category": "paint",
+      "hasReceipt": false,
+      "verdict": "not_allowed",
+      "reason": "Repainting a whole unit between tenants is routine upkeep, and there's no receipt for a charge over $125.",
+      "rule": "Rule 3 / Rule 4",
+      "route": "courtroom",
+      "decidedBy": "clerk"
+    },
+    {
+      "id": "li3",
+      "description": "Wall hole repair, living room",
+      "amount": 180,
+      "category": "repair",
+      "hasReceipt": false,
+      "verdict": "questionable",
+      "reason": "A real hole could be damage, but small marks are normal wear, so photos would settle it.",
+      "rule": "Rule 2 / Rule 3",
+      "route": "inspector",
+      "decidedBy": "clerk"
+    },
+    {
+      "id": "li4",
+      "description": "Carpet replacement (8-year-old carpet)",
+      "amount": 900,
+      "category": "carpet",
+      "hasReceipt": true,
+      "verdict": "questionable",
+      "reason": "An 8-year-old carpet is near the end of its life, so charging full replacement instead of a prorated share is questionable.",
+      "rule": "Rule 6",
+      "route": "courtroom",
+      "decidedBy": "clerk"
+    },
+    {
+      "id": "li5",
+      "description": "Broken window blinds",
+      "amount": 85,
+      "category": "repair",
+      "hasReceipt": false,
+      "verdict": "allowed",
+      "reason": "Broken blinds are damage, not normal wear, and charges under $125 don't need a receipt.",
+      "rule": "Rule 2 / Rule 4",
+      "route": "settled",
+      "decidedBy": "clerk"
+    }
+  ],
+  "otherIssues": [
+    "The statement is dated 27 days after move-out, past the 21-day deadline.",
+    "No move-out or after-repair photos were included with the statement."
+  ]
+}

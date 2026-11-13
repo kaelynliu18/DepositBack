@@ -1,0 +1,20 @@
+{
+  "rulings": [
+    {
+      "lineItemId": "li4",
+      "landlordArgument": "The carpet was replaced and there's a receipt, so the cost is documented.",
+      "tenantArgument": "Carpet wears out over time, and charging full price for an 8-year-old carpet makes the tenant pay for something that was already near the end of its life.",
+      "verdict": "questionable",
+      "reason": "The tenant wins on the amount: even if some charge is fair, the full price for an 8-year-old carpet should have been prorated.",
+      "rule": "Rule 6"
+    },
+    {
+      "lineItemId": "li2",
+      "landlordArgument": "If the tenant left marks that needed covering, repainting could be repair of damage.",
+      "tenantArgument": "Repainting an entire unit is routine work between tenants, and there's no receipt for a $600 charge.",
+      "verdict": "not_allowed",
+      "reason": "The tenant wins: whole-unit repainting is routine upkeep, and a charge over $125 with no receipt can't stand.",
+      "rule": "Rule 3 / Rule 4"
+    }
+  ]
+}
