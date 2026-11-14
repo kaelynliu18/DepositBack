@@ -1,6 +1,6 @@
-# DepositBack+
+# DepositBack
 
-Upload your landlord's security-deposit deduction statement, and DepositBack+ checks every charge against California law (Civil Code §1950.5). Claude agents review the charges, compare move-in and move-out photos, and rule on each disputed charge. You get a demand letter, an email to your landlord, and a calendar reminder.
+Only 42% of US renters get their security deposit back in full. DepositBack checks every charge against California law (Civil Code §1950.5) via a team of agents that debate the legal scope, analyze move-in and move-out photos, and flag incorrect/questionable claims to help tenants get back the money they deserve.
 
 ## Setup
 
